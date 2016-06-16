@@ -7,6 +7,7 @@ import itertools
 
 from ringbuffer2d import RingBuffer2D
 from pipeprocess import PipeProcess
+from multiprocessing import Value
 
 class AcqProcessing:
     def __init__(self):
@@ -43,7 +44,6 @@ class AcqProcessing:
         
     def stop_acquisition(self):
         self.sp.stop()
-        self.sp.join()
         self.reset_buffers()
     
     def parse_queue_item(self, line, save=False):
