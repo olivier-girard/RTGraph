@@ -16,15 +16,17 @@ class PipeProcess(object):
         self.exit = multiprocessing.Event()
         self.cmd = cmd
         self.args = args
+        self.is_running = True
         log.info("PipeProcess ready")
 
     
     def start(self):
-        self.proc = multiprocessing.Process(target=self.run)
-        self.proc.start()
+        if not self.proc:
+            self.proc = multiprocessing.Process(target=self.run)
+            self.proc.start()
+        self.is_running = True
     
     def run(self):
-        print("Running!")
         timestamp = time.time()
         self.proc = subprocess.Popen([self.cmd,  ] + self.args,
                                 stdout=subprocess.PIPE,
@@ -37,17 +39,21 @@ class PipeProcess(object):
                                     write_through=True,
                                     encoding=None):
             """
+            """
             if self.exit.is_set():
                 log.info("Subprocess finishing...")
                 self.proc.terminate()
-
+            """
             data = line.strip()
-            if data != '':
+            if self.is_running and data != '':
                 self.queue.put(data)
 
     def stop(self):
         log.info("Subprocess finishing...")
+        self.is_running = False
+        """
         if self.proc:
             self.proc.terminate()
+        """
         log.info("PipeProcess finishing...")
         self.exit.set()

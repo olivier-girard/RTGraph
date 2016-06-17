@@ -22,6 +22,7 @@ class AcqProcessing:
         
         self.integrate = False # no integration mode
         self.queue = multiprocessing.Queue()
+        self.sp = None # subprocess
         
         self.uplinks_enabled = None
         self.channels_enabled = None
@@ -37,7 +38,9 @@ class AcqProcessing:
     def start_acquisition(self, cmd):
         # reset buffers to ensure they have an adequate size
         self.reset_buffers()
-        self.sp = PipeProcess(self.queue,
+        # Ensure no subprocess is currently running
+        if not self.sp:
+            self.sp = PipeProcess(self.queue,
                               cmd=cmd,
                               args=[str(self.num_sensors),])
         self.sp.start()
