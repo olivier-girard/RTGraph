@@ -387,7 +387,7 @@ class Ui_MainWindow(object):
         self.sensorConfFile.setText(_translate("MainWindow", "sensors_pos.csv", None))
         self.sensorLoadbtn.setText(_translate("MainWindow", "Load", None))
         self.lblSetupGeneral.setText(_translate("MainWindow", "Setup file:", None))
-        self.setupGeneralFile.setText(_translate("MainWindow", "setup_examples/setup_general.txt", None))
+        self.setupGeneralFile.setText(_translate("MainWindow", "setup_examples/setup.yaml", None))
         self.setupLoadbtn.setText(_translate("MainWindow", "Load", None))
         self.intCheckBox.setText(_translate("MainWindow", "Integrate over", None))
         self.label_2.setText(_translate("MainWindow", "acquisitions", None))

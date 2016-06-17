@@ -107,6 +107,15 @@ class MainWindow(QtGui.QMainWindow):
         log.info("Clicked stop")
         self.timer_plot_update.stop()
         self.acq_proc.stop_acquisition()
+        
+    def closeEvent(self, event):
+        print('Window closed: ')
+        print('event: {0}'.format(event))
+        if self.acq_proc.sp is not None:
+            if self.acq_proc.sp.proc:
+                self.acq_proc.sp.proc.terminate()
+        # et ici tout ce qu'il faut potentiellement faire pour quitter comme il faut.
+        event.accept()
 
 
 def start_logging(level):
