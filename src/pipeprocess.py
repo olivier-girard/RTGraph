@@ -10,7 +10,7 @@ from multiprocessing import Value
 
 class PipeProcess(object):
     def __init__(self, result_queue,
-                 cmd="./fake_acq.py", args=[]):
+                 cmd="./fake_track_pebs.py", args=[]):
         self.queue = result_queue
         self.proc = None
         self.exit = multiprocessing.Event()

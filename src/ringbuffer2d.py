@@ -51,7 +51,16 @@ class RingBuffer2D(object):
     def get_partial(self, at=0):
         # Return last item 
         return self._data[(self.curr_pos-1 + at) % self.rows]
-
+        
+    def len(self,Data):  
+        Taille=0
+        for j,i in enumerate(Data):
+            if(np.all(i==0)==False):
+                Taille+=1
+        print(Taille)
+                
+                
+            
     def __getitem__(self, key):
         """
         get element

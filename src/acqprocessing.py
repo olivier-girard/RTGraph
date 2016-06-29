@@ -8,18 +8,20 @@ import itertools
 from ringbuffer2d import RingBuffer2D
 from pipeprocess import PipeProcess
 from multiprocessing import Value
+from decimal import Decimal
+
 
 class AcqProcessing:
     def __init__(self):
+		
         # USBBoard data format:
         # ADC data is sent in an array of size
         # size = N_uplinks_per_USB * N_channels_per_uplink
         self.num_sensors = 8*64 # for VATA64 front-end
-        self.num_sensors_enabled = 8*64
+        self.num_sensors_enabled = 8*64#nbr sensor enable with usbboard 
         self.num_uplinks = 8
         self.num_channels_per_uplinks = 64
         self.num_integrations = 100
-        
         self.integrate = False # no integration mode
         self.queue = multiprocessing.Queue()
         self.sp = None # subprocess
@@ -32,22 +34,27 @@ class AcqProcessing:
         self.all_gain = 0
         self.all_gain_val = 0
         self.path_gain_file = ""
-        
+        self.Threshold=0
+        self.PetoMip=0
+        #recupère les csv pedestals et gains
         self.calibration_all_channels = dict([('pedestals',np.empty(self.num_sensors_enabled)), ('gains',np.empty(self.num_sensors_enabled))])
         
     def start_acquisition(self, cmd):
         # reset buffers to ensure they have an adequate size
-        self.reset_buffers()
+        #self.reset_buffers()
         # Ensure no subprocess is currently running
+        path=cmd
         if not self.sp:
             self.sp = PipeProcess(self.queue,
                               cmd=cmd,
-                              args=[str(self.num_sensors),])
+                              args=[str(self.num_sensors),])           
         self.sp.start()
         
     def stop_acquisition(self):
+        if not self.sp:
+            self.sp = PipeProcess(self.queue,args=[str(self.num_sensors),])
         self.sp.stop()
-        self.reset_buffers()
+        #self.reset_buffers()
     
     def parse_queue_item(self, line, save=False):
         # Here retrieve the line pushed to the queue
@@ -64,7 +71,6 @@ class AcqProcessing:
             self.data.append(intensities)
             self.time.append(ts)
             self.evNumber.append(ev_num)
-            
         return ev_num, ts, intensities
     
     def fetch_data(self):
@@ -80,23 +86,43 @@ class AcqProcessing:
         return True
     
     def plot_signals_scatter(self):
+        colors=[]
         data = self.plot_signals_map().ravel()
         intensity = data[self.sensor_ids] / (2**10*self.num_sensors_enabled)
         #colors = [pg.intColor(200, alpha=int(k)) if k!=np.NaN else 0 for k in intensity/ np.max(intensity) * 100]
-        maxintensity = np.max(intensity)*0.01
-        colors = [pg.intColor(200, alpha=int(k/maxintensity)) if maxintensity>0 else 0 for k in intensity] 
-        return intensity, colors
+        maxintensity = np.max(intensity)
+        #print(data)
+        for i in range(len(self.sensor_ids)):
+            colors.append(pg.intColor(data[i], hues=(100/self.PetoMip)*1.5, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) #int(max(data))
+        #colors = [200,pg.intColor(alpha=int(k/maxintensity)) if maxintensity>0 else 0 for k in intensity] 
+        return intensity, colors, maxintensity  
     
     def plot_signals_map(self):
         if self.integrate:
             return np.sum(self.data.get_all(), axis=0).reshape(self.num_sensors_enabled,1)
         else:
-            return self.data.get_partial().reshape(self.num_sensors_enabled,1)
-
-    def set_sensor_pos(self, x_coords, y_coords, sensor_num):
+            data=self.data.get_partial()
+            #print(data,"DATA\n\n\n\n",len(data))
+            pedestals=self.calibration_all_channels['pedestals']
+            #print(pedestals)
+            gains=self.calibration_all_channels['gains']
+            for i in range(len(gains)):                
+                if(gains[i]==0):    
+                    gains[i]=1
+                    log.warning("Gains is null")
+            data=(data-pedestals)/(gains[0:self.num_sensors_enabled]*self.PetoMip)
+            for i in range(len(data)):                  #retire les donnees en dessous de threshold
+                if(data[i]<0 or data[i]<self.Threshold):
+                    data[i]=0
+            return data.reshape(self.num_sensors_enabled,1)
+    
+    
+    def set_sensor_pos(self, x_coords, y_coords, uplink_num, sensor_num):
         self.x_coords = x_coords
         self.y_coords = y_coords
-        self.sensor_ids = sensor_num
+        sensor_float = (uplink_num%10)*64 + sensor_num
+        self.sensor_ids = [int(i) for i in sensor_float]
+        #print(self.sensor_ids,self.x_coords,self.y_coords)
         if np.array_equal(np.sort(sensor_num), np.arange(len(sensor_num))):
             log.warning('Sensors ID not starting at 0, or duplicated, or missing')
         
@@ -112,7 +138,17 @@ class AcqProcessing:
         self.data = RingBuffer2D(self.num_integrations,
                                     cols=self.num_sensors_enabled)
         self.time = RingBuffer2D(1, cols=1) # Unused at the moment (buffer size is 1)
-        self.evNumber = RingBuffer2D(1, cols=1) # Unused at the moment (buffer size is 1)            
+        self.evNumber = RingBuffer2D(1, cols=1) # Unused at the moment (buffer size is 1) 
+        self.Event_Trace = RingBuffer2D(self.num_integrations, 
+                                    cols=self.num_sensors_enabled)
+        self.Event_Douche= RingBuffer2D(self.num_integrations,
+                                    cols=self.num_sensors_enabled)
+        self.Event_Muon_decay=RingBuffer2D(self.num_integrations,
+                                    cols=self.num_sensors_enabled)
+        self.All_Events=RingBuffer2D(self.num_integrations,
+                                    cols=self.num_sensors_enabled)
+        self.Class_Trace={'Trace':(self.Event_Trace),'Douche':(self.Event_Douche),'MuonDecay':(self.Event_Muon_decay),'AllEvents':(self.All_Events)}           
+        
         while not self.queue.empty():
             self.queue.get()
         log.info("Buffers cleared")
@@ -126,13 +162,13 @@ class AcqProcessing:
         all_calib = np.empty(self.num_sensors)
         # Format is: uplink, channel, data (ex pedestal, gain)
         for i, line in enumerate(data):
-            # checks that the channels int the csv file are correctly ordered
+            # checks that the channels in the csv file are correctly ordered
             if int((line[0] % 10) * self.num_channels_per_uplinks + line[1]) != i:
                 log.warning("Loading {} file: Channels must be in the right order!".format(key))
             else:
                 all_calib[i] = line[2]
         self.calibration_all_channels[key] = list(itertools.compress(all_calib, self.channels_enabled))
-    
+        
     def load_general_setup_file(self, file_path):
         # load general setup file (txt)
         # which contains the uplinks enabled and where the csv ped+gain files are
@@ -143,8 +179,8 @@ class AcqProcessing:
         with open(file_path, 'r') as f:
             cfg = yaml.load(f)
         
-        if len(cfg['FrontEndBoardConfig']) != 8:
-            og.warning("FrontEndBoardConfig should have 8 values and not {}! Aborting setup file loading.".format(len(enabled)))
+        if len(cfg['FrontEndBoardConfig']) != 8:            #lecture du fichier yalm
+            log.warning("FrontEndBoardConfig should have 8 values and not {}! Aborting setup file loading.".format(len(enabled)))
             return
         
         self.uplinks_enabled = cfg['FrontEndBoardConfig']
@@ -155,6 +191,9 @@ class AcqProcessing:
         self.all_gain = cfg['Gains']['AllGain']
         self.all_gain_val = cfg['Gains']['AllGainVal']
         self.path_gain_file =  cfg['Gains']['GainFilePath']
+        
+        self.Threshold = cfg['Threshold']
+        self.PetoMip = cfg['PetoMip']
         
         # updates channels enabled:
         self.channels_enabled = [enabled for enabled in self.uplinks_enabled for _ in range(self.num_channels_per_uplinks)]
@@ -184,5 +223,9 @@ class AcqProcessing:
         else:
             log.info("Setting gains from file {}".format(self.path_gain_file))
             self.loadCSVfile(self.path_gain_file, 'gains')
-        #print(self.channels_enabled)
- 
+        
+        """a=0
+        for i in self.calibration_all_channels['gains']:   # Visuel sur les csv uploade
+            if i!=0:
+                a+=1
+        print(self.calibration_all_channels,a)"""

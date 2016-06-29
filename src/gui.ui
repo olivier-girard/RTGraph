@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>999</width>
-    <height>732</height>
+    <width>954</width>
+    <height>393</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -300,7 +300,30 @@ QStatusBar {
    <layout class="QGridLayout" name="gridLayout">
     <item row="2" column="0">
      <layout class="QGridLayout" name="Layout_graphs">
-      <item row="4" column="0">
+      <item row="1" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="GraphicsLayoutWidget" name="plt">
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">border: 0px;</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="lineWidth">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="5" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QLabel" name="lblSensorPos">
@@ -312,7 +335,7 @@ QStatusBar {
         <item>
          <widget class="QLineEdit" name="sensorConfFile">
           <property name="text">
-           <string>sensors_pos.csv</string>
+           <string>setup_examples/geometry_pebs_approx.csv</string>
           </property>
          </widget>
         </item>
@@ -349,9 +372,16 @@ QStatusBar {
         </item>
        </layout>
       </item>
-      <item row="3" column="0">
+      <item row="2" column="0">
        <layout class="QGridLayout" name="Layout_controls">
-        <item row="4" column="2">
+        <item row="3" column="1">
+         <widget class="QLineEdit" name="cmdLineEdit">
+          <property name="text">
+           <string>./fake_track_pebs.py</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="5">
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QCheckBox" name="intCheckBox">
@@ -379,13 +409,6 @@ QStatusBar {
           </item>
          </layout>
         </item>
-        <item row="0" column="2">
-         <widget class="QPushButton" name="pButton_Stop">
-          <property name="text">
-           <string>Stop</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="0">
          <widget class="QPushButton" name="pButton_Start">
           <property name="minimumSize">
@@ -399,43 +422,31 @@ QStatusBar {
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
+        <item row="3" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
            <string>Command to execute:</string>
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
-         <widget class="QLineEdit" name="cmdLineEdit">
+        <item row="0" column="5">
+         <widget class="QPushButton" name="pButton_Stop">
           <property name="text">
-           <string>/home/lphe/usbBoard/Builds/test.sh</string>
+           <string>Stop</string>
           </property>
          </widget>
         </item>
+        <item row="3" column="3">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Save as</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="4">
+         <widget class="QLineEdit" name="lineEdit_Save_as"/>
+        </item>
        </layout>
-      </item>
-      <item row="1" column="0">
-       <layout class="QVBoxLayout" name="verticalLayout"/>
-      </item>
-      <item row="0" column="0">
-       <widget class="GraphicsLayoutWidget" name="plt">
-        <property name="autoFillBackground">
-         <bool>false</bool>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">border: 0px;</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
-        </property>
-        <property name="lineWidth">
-         <number>0</number>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>
@@ -446,12 +457,42 @@ QStatusBar {
     <bool>false</bool>
    </property>
   </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>954</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuReload">
+    <property name="title">
+     <string>reload</string>
+    </property>
+    <addaction name="actionAll_pannel"/>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
+   </widget>
+   <addaction name="menuReload"/>
+  </widget>
+  <action name="actionAll_pannel">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>All pannel</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>GraphicsLayoutWidget</class>
    <extends>QGraphicsView</extends>
-   <header>pyqtgraph</header>
+   <header location="global">pyqtgraph</header>
   </customwidget>
  </customwidgets>
  <resources/>

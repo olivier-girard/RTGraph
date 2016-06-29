@@ -1,16 +1,29 @@
 # Setup file for live monitoring with RTGraph.py
 # uplinks enabled (1=enabled, 0=disabled)
-FrontEndBoardConfig: [1, 0, 0, 0, 0, 0, 0, 0]
+FrontEndBoardConfig: [1, 1, 0, 0, 0, 0, 0, 0]
 
 # set all pedestal values (if Yes set to the value, if No, takes from pedestal csv file)
 Pedestals:
     AllPed: No
     AllPedVal: 512
-    PedFilePath: setup_examples/pedestals_csv.csv
+    PedFilePath: setup_examples/pedestals_pebs.csv
 
 # set all gain values (if Yes set to the value, if No, takes from gain csv file)
 Gains:
     AllGain: Yes
-    AllGainVal: 12
+    AllGainVal: 10.5
     GainFilePath: setup_examples/gain_csv.csv
+
+# set a Threshold values (in photoelectrons or MIP)
+Threshold: 0.5
+
+# PE to MIP
+PetoMip: 7
+
+
+
+
+
+
+    
 
