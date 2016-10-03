@@ -7,6 +7,9 @@ Hacked ringBuffer.py for 2D data:
 - Don't use np.roll() since it copies values around
 """
 
+#  Objet buffer
+# creer un array de donnee avec le nombre de colonne et ligne et le type de nombre 
+# format     [[data1],[data2],[data3],[data4]]    print(curent position and size)
 
 class RingBuffer2D(object):
     def __init__(self, rows, cols=512,
@@ -15,23 +18,28 @@ class RingBuffer2D(object):
         initialization
         """
         self.rows = rows # size of buffer = how many events you want to keep for integration for example
-        self.cols = cols
+        self.cols = cols # data size
 
         self._data = np.empty((rows, cols), dtype=dtype)
         self._data.fill(default_value)
 
         self.filled_rows = 0
         self.curr_pos = 0
+        self.free_pos = 0
 
-    def append(self, value):
+    def append(self, value,ev_num=0,time=0,key=0):
         """
         append a 1D element (row)
         :param value:
         """
         # Assign
-        self._data[self.curr_pos] = value
+        if(key=='addref'):
+            self._data[self.curr_pos][0] = ev_num
+            self._data[self.curr_pos][1] = time
+            self._data[self.curr_pos][2:]= value
+        else: self._data[self.curr_pos] = value
         # Go to the next position
-        self.curr_pos = (self.curr_pos + 1) % self.rows
+        self.curr_pos = (self.curr_pos+1) % self.rows
         # Increment filled_rows if necessary
         if self.filled_rows < self.rows: 
             self.filled_rows+=1
@@ -52,14 +60,14 @@ class RingBuffer2D(object):
         # Return last item 
         return self._data[(self.curr_pos-1 + at) % self.rows]
         
-    def len(self,Data):  
+    def len(self,affichage=False):    ## donne le nombre de donnees chargees
         Taille=0
-        for j,i in enumerate(Data):
+        for j,i in enumerate(self._data):
             if(np.all(i==0)==False):
                 Taille+=1
-        print(Taille)
-                
-                
+        if(affichage==True):
+            print(Taille)
+        return Taille
             
     def __getitem__(self, key):
         """

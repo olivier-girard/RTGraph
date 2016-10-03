@@ -1,9 +1,10 @@
 all: gui run
 
 gui:
-	pyuic4 gui.ui > gui.py
-	pyuic4 Command.ui > Command.py
-	pyuic4 DisplayMode.ui > DisplayMode.py
+	pyuic4 LiveWindow.ui > LiveWindow.py
+	pyuic4 CommandWindow.ui > CommandWindow.py
+	pyuic4 SavedWindow.ui > SavedWindow.py
+	pyuic4 PosterWindow.ui > PosterWindow.py
 
 run:
 	python3 RTGraph.py

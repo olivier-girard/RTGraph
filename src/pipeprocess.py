@@ -20,15 +20,15 @@ class PipeProcess(object):
         log.info("PipeProcess ready")
 
     
-    def start(self):
+    def start(self): 
         if not self.proc:
-            self.proc = multiprocessing.Process(target=self.run)
-            self.proc.start()
+            self.proc = multiprocessing.Process(target=self.run) # object multiprocessing
+            self.proc.start() # commence
         self.is_running = True
     
     def run(self):
         timestamp = time.time()
-        self.proc = subprocess.Popen([self.cmd,  ] + self.args,
+        self.proc = subprocess.Popen([self.cmd,  ] + self.args,   # deffinie les buffers dans lesquels multiprocessing va chercher les donners
                                 stdout=subprocess.PIPE,
                                 stdin=subprocess.PIPE,
                                 universal_newlines=True,
@@ -48,7 +48,7 @@ class PipeProcess(object):
             if self.is_running and data != '':
                 self.queue.put(data)
 
-    def stop(self):
+    def stop(self):   # stop le processing
         log.info("Subprocess finishing...")
         self.is_running = False
         """
