@@ -4,7 +4,6 @@ import io
 import time
 import subprocess
 import signal
-import signal
 
 from multiprocessing import Value
 

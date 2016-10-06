@@ -1345,7 +1345,7 @@ class Ui_CommandWindow(object):
 
     def retranslateUi(self, CommandWindow):
         CommandWindow.setWindowTitle(_translate("CommandWindow", "MainWindow", None))
-        self.lineEdit_SensorPos.setText(_translate("CommandWindow", "/home/lphe/cfg_TrackerDemo/geometry_full_tracker_approx.csv", None))
+        self.lineEdit_SensorPos.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/geometry_full_tracker_approx.csv", None))
         self.rotation.setText(_translate("CommandWindow", "3D view Rotation", None))
         self.label_5.setText(_translate("CommandWindow", "Setup file :", None))
         self.label_13.setText(_translate("CommandWindow", "  Event Id :", None))
@@ -1360,7 +1360,7 @@ class Ui_CommandWindow(object):
         self.sensorLoadbtn.setText(_translate("CommandWindow", "Load", None))
         self.label_14.setText(_translate("CommandWindow", "Acquisition buffer :", None))
         self.setupLoadbtn.setText(_translate("CommandWindow", "Load", None))
-        self.lineEdit_SetupFile.setText(_translate("CommandWindow", "setup_examples/setup.yaml", None))
+        self.lineEdit_SetupFile.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/setup.yaml", None))
         self.pushButton_SavedData.setText(_translate("CommandWindow", "Saved data", None))
         self.label_4.setText(_translate("CommandWindow", "Sensor position file:", None))
         self.label_15.setText(_translate("CommandWindow", "Muon", None))
@@ -1370,8 +1370,8 @@ class Ui_CommandWindow(object):
         self.label_18.setText(_translate("CommandWindow", "ALL", None))
         self.lineEdit_DataPath.setText(_translate("CommandWindow", "/home/lphe/scifi-data/vata64-data/Pebs_cp-from-tell22/signal_shortfile.csv", None))
         self.DataLoadbtn.setText(_translate("CommandWindow", "Load", None))
-        self.lineEdit_SaveAs.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/data.csv", None))
-        self.lineEdit_Dossier.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/data/", None))
+        self.lineEdit_SaveAs.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/SavedData/data.csv", None))
+        self.lineEdit_Dossier.setText(_translate("CommandWindow", "/home/lphe/cosmic_analysis/python-scripts/RTGraph/SavedData/data/", None))
         self.load_save_classify_data.setText(_translate("CommandWindow", "Load", None))
         self.load_save_as.setText(_translate("CommandWindow", "Load", None))
         self.load_USB_board_file.setText(_translate("CommandWindow", "Load", None))

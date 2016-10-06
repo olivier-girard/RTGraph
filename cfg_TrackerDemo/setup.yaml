@@ -9,18 +9,18 @@ Pedestals:
 #    PedFilePath: setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/OneFloor_module/pedestal2.csv
-    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal1.csv
+    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal3.csv
 
-# set all gain values (if Yes set to the value, if No, takes from gain csv file)
+# set all gain values in ADC/PE (if Yes set to the value, if No, takes from gain csv file)
 Gains:
     AllGain: Yes
     AllGainVal: 10.5
     GainFilePath: setup_examples/gain_csv.csv
 
-# set a Threshold values (in photoelectrons or MIP)
+# set a Threshold values (in MIP (?))
 Threshold: 0.6
 
-# PE to MIP (convertion facteur from photoelectron to MIP)
+# PE to MIP (convertion factor from photoelectron to MIP)
 PetoMip: 7
 
 

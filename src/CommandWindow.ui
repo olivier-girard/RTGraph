@@ -352,7 +352,7 @@ QPushButton:pressed {
            <item row="11" column="1" colspan="6">
             <widget class="QLineEdit" name="lineEdit_SensorPos">
              <property name="text">
-              <string>/home/lphe/cfg_TrackerDemo/geometry_full_tracker_approx.csv</string>
+              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/geometry_full_tracker_approx.csv</string>
              </property>
             </widget>
            </item>
@@ -1756,7 +1756,7 @@ QPushButton:pressed {
            <item row="9" column="1" colspan="6">
             <widget class="QLineEdit" name="lineEdit_SetupFile">
              <property name="text">
-              <string>setup_examples/setup.yaml</string>
+              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/setup.yaml</string>
              </property>
             </widget>
            </item>
@@ -2551,14 +2551,14 @@ QPushButton:pressed {
              <item row="0" column="0">
               <widget class="QLineEdit" name="lineEdit_SaveAs">
                <property name="text">
-                <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/data.csv</string>
+                <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/SavedData/data.csv</string>
                </property>
               </widget>
              </item>
              <item row="1" column="0">
               <widget class="QLineEdit" name="lineEdit_Dossier">
                <property name="text">
-                <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/data/</string>
+                <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/SavedData/data/</string>
                </property>
               </widget>
              </item>

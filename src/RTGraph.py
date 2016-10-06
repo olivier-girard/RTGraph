@@ -416,8 +416,11 @@ class CommandWindow(QtGui.QMainWindow):
         #options=[fullname, str(self.USBboard_Nevents)]
         
         #------ USBBoard true DAQ: for multiple DAQ -> generating ROOT file with Nevents and then restarting (with an increment in the filename)
-        cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
-        options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
+        #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
+        #options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
+        
+        #------ Faking TRACKERDEMO DAQ
+        cmd="./fake_track_TrackerDemo.py"
         
         #--------------------------------------------------------------------
         
