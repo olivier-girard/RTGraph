@@ -215,23 +215,34 @@ class Classify(object):
         return pos_signal[0:2]             
         
     def fit_event(self,data,plot=True):     
-        # regression on the first and the last point, muon fit
-        y=[];z=[];reg_z=[]
-        a=0;b=0;teta=0
-        y,z,x=self.signal_xyz(data)
-        if(y[0]-y[len(y)-1]!=0):
-            a=(z[0]-z[len(z)-1])/(y[0]-y[len(y)-1])
-            b=z[0]-a*y[0]
-            teta=(m.atan(1/a)*180)/m.pi
-            for i in y:
-                reg_z.append(a*i + b)
-        if(y[0]-y[len(y)-1]==0):
-            z=[0]*len(z)
-            reg_z=np.arange(0,len(y))
+    
+        # new regression with least squares method
+        reg_z = []
+        a, b, teta = 0, 0, 0
+        y,z,x = self.signal_xyz(data)
+        m, y0 = least_squares(z,y)
+        
+        if(m < 1.e9) :
+            teta  = (m.atan(1./m)*180)/m.pi
+        	reg_z = [ m*yi + y0 for yi in y ]
+        else :
+            theta = 90
+            reg_z = np.arange(0,len(y)) ## Check
+        	
+        # old regression on the first and the last point, muon fit
+        #if(y[0]-y[len(y)-1]!=0):
+        #    a=(z[0]-z[len(z)-1])/(y[0]-y[len(y)-1])
+        #    b=z[0]-a*y[0]
+        #    teta=(m.atan(1/a)*180)/m.pi
+        #    for i in y:
+        #        reg_z.append(a*i + b)
+        #if(y[0]-y[len(y)-1]==0):
+        #    z=[0]*len(z)
+        #    reg_z=np.arange(0,len(y))
+        
         if(plot==True):
             return y, reg_z
-        if(plot==False): 
-            return teta 
+        return teta 
             
             
         
@@ -293,6 +304,24 @@ class Classify(object):
     
     def class_electron_E(self):
         print()
-    ##
+    
 
+################################################
 
+def least_squares( x, y ) :
+
+    if len(x) != len(y) :  
+        print "ATTENTION: x and y have different lenghts, no fit performed"
+        return
+        
+    N = len(y)
+    sum_xy = sum( [xi*yi for xi in x for y1 in y] )
+    sum_x = sum( x )
+    sum_x2 = sum( [xi**2 for xi in x] )
+    sum_y = sum( y )
+        
+    denom = N * sum_x2 - (sum_x)**2
+    teta = ( N * sum_xy - sum_x * sum_y) / denom
+    intercept = (sum_y*sum_x2 - sum_x*sum_xy) / denom
+    
+    return theta, intercept

@@ -24,6 +24,8 @@ from acqprocessing import AcqProcessing
 from Classify import Classify
 from Visual3d import View3D
 
+from triggers import triggers
+
 # architecture: le programme est divisé en trois parties, une pour chaque pannel:live, command et saved
 # les configurations des trois fenètres s'effectue grâce a deux fichiers, le SetupFile qui contient 
 # les gains, les entrées et les paramètrees trie et le GEOnmetrieFile qui dimentionne le detecteur 
@@ -53,6 +55,11 @@ class LiveWindow(QtGui.QMainWindow):
         self.event_seperete=[[0]]*5
         self.energie_tot_seperete=[[0]]*5
         self.play_cam=1                                                  # booleen camera 3d
+        
+        #trigger
+        self.trigger_dec = True
+        self.trigger_type = None
+        
         # configures plots
         self.configure_plot()
 
@@ -100,7 +107,11 @@ class LiveWindow(QtGui.QMainWindow):
         
         #UPDATE PLOT    plot 1*3d, 1*2d, 2*histogrammes,  
     def update_plot(self):   
-        #tt = time.time()
+        #tt = time.time() 
+        if not self.trigger_dec :
+            self.timer_plot_update.stop()
+            return
+             
         current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
         if(self.acq_proc.plot_signals_scatter()==False):                                                              # mistake between sensorenable and datapipe lenght
             self.timer_plot_update.stop()
@@ -140,6 +151,14 @@ class LiveWindow(QtGui.QMainWindow):
         if(self.acq_proc.data.curr_pos!=0 and current_pos!=self.sp): # avoid copy
             self.sp=current_pos
             data=self.acq_proc.plot_signals_map()   # give process data in p.e or MIP (without noise)
+            
+            ## Trigger implementation
+            self.trigger_dec = True
+            if self.trigger_type in triggers : 
+                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(data))
+                if not self.trigger_dec : return
+            ## continuing what was there before
+            
             self.acq_proc.Class_EventLive,self.teta = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
             self.event_seperete=self.dico_live.event_id() # event's id 

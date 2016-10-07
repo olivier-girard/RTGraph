@@ -210,6 +210,21 @@ class AcqProcessing:
     def set_integration_mode(self, value):
         self.integrate = value
     
+    def make_data_grid(self, data) : #, x_coords, y_coords) :
+        
+        grid = []
+        stage = []
+        
+        for i,(x,y) in enumarate(zip(self.y_coords,self.x_coords)) :
+            if i % self.Sensor_per_Stage == 0 :
+                if len(stage) > 0 : grid.append(stage)
+                stage = []
+            stage.append((data[i],(x,y)))
+        grid.append(stage)
+        #print grid
+        return grid
+        
+    
 
 ####### BUFFERS #################
     def reset_buffers(self):
