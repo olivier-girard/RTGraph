@@ -7,7 +7,7 @@ import itertools
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
-import math as m
+import math
 import random as rand
 
 
@@ -33,7 +33,7 @@ class Classify(object):
     def __init__(self,cmd,sensorpath,setuppath):    #cmd = dico Live (Class_EventLive) or dico Saved  (Class_EventSaved)  #data = Tableau 2D
         self.acq_proc=AcqProcessing()
         self.cmd=cmd # dico 
-        self.teta=[]
+        self.theta=[]
         self.sensors_path=sensorpath
         self.setup_path=setuppath
         self.key="live"
@@ -99,7 +99,7 @@ class Classify(object):
                                     self.cmd['Muon'].append(data)
                                     self.event[1].append(event[0])
                                     self.energie[1].append(self.energie_deposite(data))
-                                    self.teta.append(self.fit_event(data,plot=False))
+                                    self.theta.append(self.fit_event(data,plot=False))
                             if(i==0):counter.append(0)
                             if(i>1 and Nbr_Mip_per_Stage[j]>20/self.acq_proc.PetoMip):    ####  Electron
                                 self.cmd['Electron'].append(data)
@@ -116,7 +116,7 @@ class Classify(object):
                 self.energie[4].append(self.energie_deposite(data))
         te = time.time()
         #print("{}",format(te-ts))
-        return self.cmd,np.asarray(self.teta)
+        return self.cmd,np.asarray(self.theta)
         
                                     
     def parameters(self):
@@ -218,12 +218,12 @@ class Classify(object):
     
         # new regression with least squares method
         reg_z = []
-        a, b, teta = 0, 0, 0
+        a, b, theta = 0, 0, 0
         y,z,x = self.signal_xyz(data)
         m, y0 = least_squares(z,y)
         
         if(m < 1.e9) :
-            teta  = (m.atan(1./m)*180)/m.pi
+            theta  = (math.atan(1./m)*180)/math.pi
             reg_z = [ m*yi + y0 for yi in y ]
         else :
             theta = 90
@@ -233,7 +233,7 @@ class Classify(object):
         #if(y[0]-y[len(y)-1]!=0):
         #    a=(z[0]-z[len(z)-1])/(y[0]-y[len(y)-1])
         #    b=z[0]-a*y[0]
-        #    teta=(m.atan(1/a)*180)/m.pi
+        #    theta=(math.atan(1/a)*180)/math.pi
         #    for i in y:
         #        reg_z.append(a*i + b)
         #if(y[0]-y[len(y)-1]==0):
@@ -242,7 +242,7 @@ class Classify(object):
         
         if(plot==True):
             return y, reg_z
-        return teta 
+        return theta 
             
             
         
@@ -251,18 +251,18 @@ class Classify(object):
         angle=data
         nbr=0
         nbr_ev=[]
-        val_teta=[]
-        for i,teta in enumerate(angle):
-            if(teta!=0):
-                val_teta.append(teta)
-                for i2,teta2 in enumerate(angle):
-                    if(teta2==teta or teta2==-teta):
+        val_theta=[]
+        for i,theta in enumerate(angle):
+            if(theta!=0):
+                val_theta.append(theta)
+                for i2,theta2 in enumerate(angle):
+                    if(theta2==theta or theta2==-theta):
                         nbr+=1
                         angle[i2]=0
                 nbr_ev.append(nbr)
                 nbr=0
-        print(nbr_ev,np.round(val_teta),x,y)
-        return np.asarray(nbr_ev),np.asarray(val_teta) 
+        print(nbr_ev,np.round(val_theta),x,y)
+        return np.asarray(nbr_ev),np.asarray(val_theta) 
         
     def class_muon(self):
         for j, i in enumerate(Nbr_Signal_per_Stage):
@@ -276,7 +276,7 @@ class Classify(object):
                                 self.cmd['Muon'].append(data)
                                 self.event[1].append(event[0])
                                 self.energie[1].append(self.energie_deposite(data))
-                                self.teta.append(self.fit_event(data,plot=False))
+                                self.theta.append(self.fit_event(data,plot=False))
             if(i==0):counter.append(0)
     
     def class_electron(self):
@@ -315,13 +315,13 @@ def least_squares( x, y ) :
         return
         
     N = len(y)
-    sum_xy = sum( [xi*yi for xi in x for y1 in y] )
+    sum_xy = sum( [xi*yi for xi in x for yi in y] )
     sum_x = sum( x )
     sum_x2 = sum( [xi**2 for xi in x] )
     sum_y = sum( y )
         
     denom = N * sum_x2 - (sum_x)**2
-    teta = ( N * sum_xy - sum_x * sum_y) / denom
+    theta = ( N * sum_xy - sum_x * sum_y) / denom
     intercept = (sum_y*sum_x2 - sum_x*sum_xy) / denom
     
     return theta, intercept
