@@ -224,11 +224,11 @@ class Classify(object):
         
         if(m < 1.e9) :
             teta  = (m.atan(1./m)*180)/m.pi
-        	reg_z = [ m*yi + y0 for yi in y ]
+            reg_z = [ m*yi + y0 for yi in y ]
         else :
             theta = 90
             reg_z = np.arange(0,len(y)) ## Check
-        	
+            
         # old regression on the first and the last point, muon fit
         #if(y[0]-y[len(y)-1]!=0):
         #    a=(z[0]-z[len(z)-1])/(y[0]-y[len(y)-1])
@@ -311,7 +311,7 @@ class Classify(object):
 def least_squares( x, y ) :
 
     if len(x) != len(y) :  
-        print "ATTENTION: x and y have different lenghts, no fit performed"
+        print("ATTENTION: x and y have different lenghts, no fit performed")
         return
         
     N = len(y)

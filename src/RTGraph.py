@@ -430,16 +430,16 @@ class CommandWindow(QtGui.QMainWindow):
         #cmd="./fake_track_pebs.py"
         
         #------ USBBoard true DAQ: for single DAQ -> generating only one ROOT file and then terminate
-        #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
-        #fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
-        #options=[fullname, str(self.USBboard_Nevents)]
+        cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
+        fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
+        options=[fullname, str(self.USBboard_Nevents)]
         
         #------ USBBoard true DAQ: for multiple DAQ -> generating ROOT file with Nevents and then restarting (with an increment in the filename)
         #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
         #options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
         
         #------ Faking TRACKERDEMO DAQ
-        cmd="./fake_track_TrackerDemo.py"
+        #cmd="./fake_track_TrackerDemo.py"
         
         #--------------------------------------------------------------------
         
