@@ -159,11 +159,11 @@ class LiveWindow(QtGui.QMainWindow):
                 if not self.trigger_dec : return
             ## continuing what was there before
             
-            self.acq_proc.Class_EventLive,self.teta = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
+            self.acq_proc.Class_EventLive,self.theta = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
             self.event_seperete=self.dico_live.event_id() # event's id 
             
-            self.y,self.x=np.histogram(self.teta,bins=np.linspace(-50, 50, 20))   # data histogram
+            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-50, 50, 20))   # data histogram
             self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
             
             self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
@@ -430,16 +430,16 @@ class CommandWindow(QtGui.QMainWindow):
         #cmd="./fake_track_pebs.py"
         
         #------ USBBoard true DAQ: for single DAQ -> generating only one ROOT file and then terminate
-        #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
-        #fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
-        #options=[fullname, str(self.USBboard_Nevents)]
+        cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
+        fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
+        options=[fullname, str(self.USBboard_Nevents)]
         
         #------ USBBoard true DAQ: for multiple DAQ -> generating ROOT file with Nevents and then restarting (with an increment in the filename)
         #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
         #options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
         
         #------ Faking TRACKERDEMO DAQ
-        cmd="./fake_track_TrackerDemo.py"
+        #cmd="./fake_track_TrackerDemo.py"
         
         #--------------------------------------------------------------------
         
@@ -600,7 +600,7 @@ class SavedWindow(QtGui.QMainWindow):
         self.ip=True    # booleen
         self.nb_events_per_class=[0]*5     
         self.energie_tot_seperete=[[0]]*5  
-        self.teta=[]        # array of each muon trace
+        self.theta=[]        # array of each muon trace
         self.event_seperete=[[0]]*5   # array of event id
         self.play_cam=1
         
@@ -712,7 +712,7 @@ class SavedWindow(QtGui.QMainWindow):
             self.timer_plot_update.stop()
         else:
             intensity, colors, maxintensity,data = self.plot_signals_scatter()                # donnee du plots 
-            self.y,self.x=np.histogram(self.teta,bins=np.linspace(-50, 50, 20))               
+            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-50, 50, 20))               
             # histogramme angles
             self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
             # histogramme cannaux 
@@ -753,7 +753,7 @@ class SavedWindow(QtGui.QMainWindow):
             self.acq_proc.data_load.append(data[0:self.acq_proc.num_sensors_enabled+2])
             self.dataPlot,event=self.plot_signals_map()
             self.acq_proc.Event_id_Saved.append(event)
-            self.acq_proc.Class_EventSaved,self.teta = self.dico_saved.classify_event(self.dataPlot,self.acq_proc.Event_id_Saved.get_partial())
+            self.acq_proc.Class_EventSaved,self.theta = self.dico_saved.classify_event(self.dataPlot,self.acq_proc.Event_id_Saved.get_partial())
             self.energie_tot_seperete=self.dico_saved.energie_deposite_seperete()
             self.event_seperete=self.dico_saved.event_id()
         self.nb_events_per_class=[self.acq_proc.Class_EventSaved['AllEvents'].len(),self.acq_proc.Class_EventSaved['Muon'].len(),
