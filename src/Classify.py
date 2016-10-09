@@ -220,11 +220,11 @@ class Classify(object):
         reg_z = []
         a, b, teta = 0, 0, 0
         y,z,x = self.signal_xyz(data)
-        m, y0 = least_squares(z,y)
+        m, z0 = least_squares(y,z)
         
         if(m < 1.e9) :
             teta  = (m.atan(1./m)*180)/m.pi
-        	reg_z = [ m*yi + y0 for yi in y ]
+        	reg_z = [ m*yi + z0 for yi in y ]
         else :
             theta = 90
             reg_z = np.arange(0,len(y)) ## Check
