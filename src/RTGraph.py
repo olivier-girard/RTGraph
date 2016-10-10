@@ -49,9 +49,9 @@ class LiveWindow(QtGui.QMainWindow):
         self.timer_plot_update = None
         self.timer_freq_update = None
         self.start_time = time.time()
-        self.tsampled = []
-        self.vsampled = { "freq" : [], "nevt" : [] }
-        self.sample_dt = 5
+        self.tsampled = []                              ## sampling time
+        self.vsampled = { "freq" : [], "nevt" : [] }    ## sampled variables
+        self.sample_dt = 5                              ## sampling interval
         
         self.sp = None
         self.nb_events_per_class=[0]*5                                   #  nbr de categorie d'evenement differents  ex: All,Muon,Electron.....
@@ -65,15 +65,21 @@ class LiveWindow(QtGui.QMainWindow):
         self.trigger_dec = True
         self.trigger_type = "nlayers"
         
+        ## For integration
+        self.integrate_on = False
+        self.int_events = 0
+        self.intensity = []
+        self.colors = []
+        
         # configures plots
         self.configure_plot()
 
         # CONFIGURATION
     def configure_plot(self):
         # object plot 2D
-        self.img = pg.ImageItem()                                           #image channel
-        self.Hist=pg.PlotCurveItem()                          # histogramme
-        self.FreqHist=pg.PlotCurveItem(stepMode=False)                          # histogramme
+        self.img = pg.ImageItem()                                           # image channel
+        self.Hist=pg.PlotCurveItem()                                        # histogramme 
+        self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color=(255, 0, 0),width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
@@ -121,6 +127,10 @@ class LiveWindow(QtGui.QMainWindow):
         elif not self.trigger_dec :
 
             intensity, colors, maxintensity,self.data= self.acq_proc.plot_signals_scatter()
+            
+            #if self.integrate_on :
+            #    intensity, colors = self.integrate(intensity, colors)
+            
             self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
             if(maxintensity!=0):
                 self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=(intensity/5),brush=colors) # plot scatter
@@ -147,7 +157,29 @@ class LiveWindow(QtGui.QMainWindow):
             if(self.option_num!=1):
                self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
             self.ui.plt3d.items=self.view3d.w.items
+    
+    def integrate(self,intensity,colors) :
+        
+        self.int_events += 1
+        int_intensity = []
+        int_colors = []
+        
+        if len(self.int_intensities) == 0 :
+            self.intensities = intensity[:]
+            self.colors = colors[:]
+            return intensity, colors
+        
+        for i, pi in zip(intensity,self.int_intensities) :
+            int_intensity.append( ( (self.int_events -1) * pi + i) / self.int_events )
+        
+        for c, pc in zip(colors,self.int_colors) :
+            int_colors.append( ( (self.int_events -1) * pc + c) / self.int_events )
             
+        self.intensities = int_intensity
+        self.colors = int_colors
+        
+        return int_intensity, int_colors
+    
         # CLASSIFY EACH DATA ON A DICTIONNARY
     def fill_dico(self):      # class data for each click
         self.acq_proc.fetch_data() # get data from pipe
@@ -176,6 +208,7 @@ class LiveWindow(QtGui.QMainWindow):
                 self.tsampled.append( nt )
                 self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
                 
+                ## Only for dn > 0 to avoid negative frequencies when time resets
                 if dn > 0 : self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
             
             
