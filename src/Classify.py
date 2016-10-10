@@ -227,7 +227,7 @@ class Classify(object):
             reg_z = [ m*yi + z0 for yi in y ]
         else :
             theta = 90
-            reg_z = np.arange(0,len(y)) ## Check
+            reg_z = np.arange(0,len(y))
             
         # old regression on the first and the last point, muon fit
         #if(y[0]-y[len(y)-1]!=0):

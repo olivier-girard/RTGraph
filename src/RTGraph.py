@@ -48,6 +48,11 @@ class LiveWindow(QtGui.QMainWindow):
         
         self.timer_plot_update = None
         self.timer_freq_update = None
+        self.start_time = time.time()
+        self.tsampled = []
+        self.vsampled = { "freq" : [], "nevt" : [] }
+        self.sample_dt = 5
+        
         self.sp = None
         self.nb_events_per_class=[0]*5                                   #  nbr de categorie d'evenement differents  ex: All,Muon,Electron.....
         self.event_name=['AllEvents','Muon','Electron','MuonDecay','HighEnergieElectron']      # nom des categories
@@ -58,7 +63,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         #trigger
         self.trigger_dec = True
-        self.trigger_type = None
+        self.trigger_type = "nlayers"
         
         # configures plots
         self.configure_plot()
@@ -67,7 +72,8 @@ class LiveWindow(QtGui.QMainWindow):
     def configure_plot(self):
         # object plot 2D
         self.img = pg.ImageItem()                                           #image channel
-        self.Hist=pg.PlotCurveItem()                                        # histogramme
+        self.Hist=pg.PlotCurveItem()                          # histogramme
+        self.FreqHist=pg.PlotCurveItem(stepMode=False)                          # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color=(255, 0, 0),width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
@@ -89,6 +95,7 @@ class LiveWindow(QtGui.QMainWindow):
         self.histogram = self.ui.plthistogram.addPlot(title = 'Angle Incidencie')
         self.histogram.addItem(self.Hist)
         self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
+        self.frequency.addItem(self.FreqHist)
     
         
     def configure_timers(self):
@@ -107,15 +114,12 @@ class LiveWindow(QtGui.QMainWindow):
         
         #UPDATE PLOT    plot 1*3d, 1*2d, 2*histogrammes,  
     def update_plot(self):   
-        #tt = time.time() 
-        if not self.trigger_dec :
-            self.timer_plot_update.stop()
-            return
              
         current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
-        if(self.acq_proc.plot_signals_scatter()==False):                                                              # mistake between sensorenable and datapipe lenght
+        if( self.acq_proc.plot_signals_scatter()==False ):                                                            # mistake between sensorenable and datapipe lenght
             self.timer_plot_update.stop()
-        else: 
+        elif not self.trigger_dec :
+
             intensity, colors, maxintensity,self.data= self.acq_proc.plot_signals_scatter()
             self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
             if(maxintensity!=0):
@@ -125,7 +129,7 @@ class LiveWindow(QtGui.QMainWindow):
                 self.droite.setData(x,y)                                                                              # plot fit
             else:
                 self.droite.setData([0],[0])                                                                          # clean fit
-            nt = time.time()
+            
             ###### 3D #######
             y,z,x_coord=self.dico_live.signal_xyz(intensity)                # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
             x_coords=self.dico_live.simulation_x(intensity)
@@ -155,9 +159,25 @@ class LiveWindow(QtGui.QMainWindow):
             ## Trigger implementation
             self.trigger_dec = True
             if self.trigger_type in triggers : 
-                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(data))
+                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(data), layers = 5)
                 if not self.trigger_dec : return
             ## continuing what was there before
+            
+            ## Frequqncy plot
+            nt = time.time() - self.start_time
+            if len(self.tsampled) == 0 :
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
+                self.vsampled["freq"].append( ( 0., 0. ) )
+                
+            dt = nt - self.tsampled[-1]
+            if dt > self.sample_dt :
+                dn = self.acq_proc.Class_EventLive['AllEvents'].len() - self.vsampled["nevt"][-1]
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
+                
+                if dn > 0 : self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
+            
             
             self.acq_proc.Class_EventLive,self.theta = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
@@ -165,6 +185,10 @@ class LiveWindow(QtGui.QMainWindow):
             
             self.y,self.x=np.histogram(self.theta,bins=np.linspace(-50, 50, 20))   # data histogram
             self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+            self.FreqHist.setData(
+                [x[0] for x in self.vsampled["freq"]],
+                [x[1] for x in self.vsampled["freq"]],
+                stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
             
             self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
                                 self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['MuonDecay'].len(),self.acq_proc.Class_EventLive['HighEnergieElectron'].len()]
