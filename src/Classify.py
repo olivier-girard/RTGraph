@@ -217,31 +217,27 @@ class Classify(object):
     def fit_event(self,data,plot=True):     
     
         # new regression with least squares method
-        reg_z = []
-        a, b, theta = 0, 0, 0
+        theta = 0
         y,z,x = self.signal_xyz(data)
         m, z0 = least_squares(y,z)
+        #m, z0 = iterative_least_squares(y,z)
+        reg_y, reg_z = y, []
         
-        if(m < 1.e9) :
-            theta  = (math.atan(1./m)*180)/math.pi
-            reg_z = [ m*yi + z0 for yi in y ]
-        else :
+        if(m is None) : ## straight vertical tracks
             theta = 90
-            reg_z = np.arange(0,len(y))
-            
-        # old regression on the first and the last point, muon fit
-        #if(y[0]-y[len(y)-1]!=0):
-        #    a=(z[0]-z[len(z)-1])/(y[0]-y[len(y)-1])
-        #    b=z[0]-a*y[0]
-        #    theta=(math.atan(1/a)*180)/math.pi
-        #    for i in y:
-        #        reg_z.append(a*i + b)
-        #if(y[0]-y[len(y)-1]==0):
-        #    z=[0]*len(z)
-        #    reg_z=np.arange(0,len(y))
+            reg_z = np.arange(1,len(y)+1)
+        else :
+            reg_y = []
+            theta  = (math.atan(m)*180.)/math.pi
+            for zi in z :
+                yr = (zi - z0)/m
+                if 0 < yr < 33 : 
+                    reg_y.append( yr )
+                    reg_z.append( zi )
+            #if(plot==True):print (m, z0, theta)
         
         if(plot==True):
-            return y, reg_z
+            return reg_y, reg_z
         return theta 
             
             
@@ -308,6 +304,39 @@ class Classify(object):
 
 ################################################
 
+## Lest_squares is the one that works.
+## Iterative least_squares repeates the least_squares weighting the points by the inverse of the residual
+## meaning that points far away become less and less important. Fit stops when the angular coessificent
+## changes less than 10% from the previous iteration. (To be tested!!!) 
+
+def get_weights(m,y0,x,y,w) :
+    
+    nw = []
+    if len(w) == 0 : w = [1.]*len(x)
+    for x,y in zip(x,y) :
+        res = y - ( m*x + y0 )
+        nw.append(w * 1./res)
+    return nw
+
+def iterative_least_squares(x,y) :
+    
+    w = [1.]*len(x)
+    prevm = -999999
+    m, y0 = 0, 0
+    print("Iterative fitting")
+    while True :
+        
+        if m is None:
+            break;
+        m,y0 = least_squares_w(x,y,w)
+        print (m, y0)
+        if abs(m - prevm)/m < 0.1 : break
+        prevm = m
+        
+        w = get_weights(m,y0,x,y,w)
+    
+    return m,y0
+
 def least_squares( x, y ) :
 
     if len(x) != len(y) :  
@@ -315,13 +344,47 @@ def least_squares( x, y ) :
         return
         
     N = len(y)
-    sum_xy = sum( [xi*yi for xi in x for yi in y] )
-    sum_x = sum( x )
-    sum_x2 = sum( [xi**2 for xi in x] )
-    sum_y = sum( y )
-        
-    denom = N * sum_x2 - (sum_x)**2
-    theta = ( N * sum_xy - sum_x * sum_y) / denom
-    intercept = (sum_y*sum_x2 - sum_x*sum_xy) / denom
+    mean_x = sum( x ) / float(N)
+    denom = sum( [ (xi - mean_x)**2 for xi in x ] )
+    if denom < 1.e-6 : return None, x[0]
     
-    return theta, intercept
+    mean_y = sum( y ) / float(N)
+    
+    xy = []
+    for xi,yi in zip(x,y) :
+        xy.append((xi - mean_x)*(yi - mean_y))
+    
+    sum_xy = sum( xy )
+    m = sum_xy / denom 
+    y0 = mean_y - m*mean_x
+    
+    return m,y0
+
+def least_squares_w( x, y, w ) :
+
+    if len(x) != len(y) :  
+        print("ATTENTION: x and y have different lenghts, no fit performed")
+        return
+        
+    sumw = sum(w)
+    x,y,x2,xy = [],[],[],[]
+    for xi,yi,wi in zip(x,y,w) :
+        x.append(wi*xi)
+        y.append(wi*yi)
+    
+    mean_x =  sum(x) / float(sumw)
+    
+    for xi,yi,wi in zip(x,y,w) :
+        xy.append(wi*(xi - mean_x)*(yi - mean_y))
+        x2,append(wi*(xi - mean_x)**2)
+    
+    denom = sum(x2)
+    if denom < 1.e-6 : return None, None
+    
+    mean_y = sum( y ) / float(sumw)
+    
+    sum_xy = sum( xy )
+    m = sum_xy / denom 
+    y0 = mean_y - m*mean_x
+    
+    return m,y0

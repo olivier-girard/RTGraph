@@ -10,6 +10,7 @@ import numpy as np
 import pyqtgraph.opengl as gl
 import os
 import math as m
+import csv
 
 import logging as log
 import logging.handlers
@@ -66,13 +67,17 @@ class LiveWindow(QtGui.QMainWindow):
         self.trigger_type = "nlayers"
         
         ## For integration
+        self.path_calib = "./mip_calibration.csv"
         self.integrate_on = False
+        self.calibrate_MIP = True
+        self.mip_calibration = []
         self.int_events = 0
-        self.intensity = []
-        self.colors = []
+        self.int_intensities = []
+        self.int_colors = []
         
         # configures plots
         self.configure_plot()
+        if not self.calibrate_MIP : self.load_calibration()
 
         # CONFIGURATION
     def configure_plot(self):
@@ -102,7 +107,6 @@ class LiveWindow(QtGui.QMainWindow):
         self.histogram.addItem(self.Hist)
         self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
         self.frequency.addItem(self.FreqHist)
-    
         
     def configure_timers(self):
         self.timer_plot_update = QtCore.QTimer(self)
@@ -126,25 +130,26 @@ class LiveWindow(QtGui.QMainWindow):
             self.timer_plot_update.stop()
         elif not self.trigger_dec :
 
-            intensity, colors, maxintensity,self.data= self.acq_proc.plot_signals_scatter()
+            intensity, colors, maxintensity,self.data = self.acq_proc.plot_signals_scatter()
             
-            #if self.integrate_on :
-            #    intensity, colors = self.integrate(intensity, colors)
+            #if self.integrate_on and not self.calibrate_MIP:
+            #    intensity = self.integrate(intensity)
             
             self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
             if(maxintensity!=0):
                 self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=(intensity/5),brush=colors) # plot scatter
             if(self.acq_proc.option=='Muon'):
                 x,y=self.dico_live.fit_event(self.data,plot=True)
-                self.droite.setData(x,y)                                                                              # plot fit
+                self.droite.setData(x,y)                         
+                if self.calibrate_MIP : self.calibrate(intensity)                                                    # plot fit
             else:
                 self.droite.setData([0],[0])                                                                          # clean fit
             
             ###### 3D #######
-            y,z,x_coord=self.dico_live.signal_xyz(intensity)                # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
+            y,z,x_coord=self.dico_live.signal_xyz(intensity)                    # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
             x_coords=self.dico_live.simulation_x(intensity)
             for i in range(len(self.acq_proc.y_coords)):
-                self.color3D[i]=(1,1,1,1)                   # COULEUR SCATTER3D
+                self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
             # array contenant les donnees 3d 
             self.pos3D=np.vstack([x_coords,-self.acq_proc.Sensor_per_Stage/2+self.acq_proc.x_coords,-self.acq_proc.nb_Stage/2 + self.acq_proc.y_coords]).transpose()
             if(maxintensity!=0):
@@ -157,29 +162,50 @@ class LiveWindow(QtGui.QMainWindow):
             if(self.option_num!=1):
                self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
             self.ui.plt3d.items=self.view3d.w.items
+            
+            if self.calibrate_MIP and self.int_events%2 :
+                with open(self.path_calib,"w") as csvsavedfile:
+                    writerdata=csv.writer(csvsavedfile,delimiter='\t',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    writerdata.writerows(self.mip_calibration)
     
-    def integrate(self,intensity,colors) :
+    def integrate(self,intensity) :
         
         self.int_events += 1
         int_intensity = []
-        int_colors = []
         
         if len(self.int_intensities) == 0 :
-            self.intensities = intensity[:]
-            self.colors = colors[:]
-            return intensity, colors
+            self.int_intensities = intensity[:]
+            return intensity
         
         for i, pi in zip(intensity,self.int_intensities) :
             int_intensity.append( ( (self.int_events -1) * pi + i) / self.int_events )
-        
-        for c, pc in zip(colors,self.int_colors) :
-            int_colors.append( ( (self.int_events -1) * pc + c) / self.int_events )
             
-        self.intensities = int_intensity
-        self.colors = int_colors
+        self.int_intensities = int_intensity
         
-        return int_intensity, int_colors
-    
+        return np.array(int_intensity)
+
+    def calibrate(self,intensity) :
+        
+        self.int_events += 1
+        if len(self.mip_calibration) == 0 :
+            for ni in intensity :
+                 if i > 0 : self.mip_calibration.append( ni, 1 )
+                 else : self.mip_calibration.append( 0, 0 )
+            return
+            
+        newcalib = []    
+        for ni,i in zip(intensity,self.mip_calibration) :
+            nevts, intens = i
+            if i > 0 : newcalib.append( ( (nevts*intens + ni)/(nevts+1), nevts+1 ) )
+            else : newcalib.append(i)
+                    
+        self.mip_calibration = newcalib
+
+    def load_calibration(self) :
+        if os.path.exists(self.path_calib):
+            self.mip_calibration = [x[0] for x in np.genfromtxt(self.path_calib)]
+
         # CLASSIFY EACH DATA ON A DICTIONNARY
     def fill_dico(self):      # class data for each click
         self.acq_proc.fetch_data() # get data from pipe

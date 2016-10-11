@@ -440,7 +440,7 @@ class Ui_MainWindow(object):
         self.actionAll.setObjectName(_fromUtf8("actionAll"))
 
         self.retranslateUi(MainWindow)
-        self.display.setCurrentIndex(1)
+        self.display.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

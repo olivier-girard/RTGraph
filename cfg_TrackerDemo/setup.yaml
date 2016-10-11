@@ -9,7 +9,11 @@ Pedestals:
 #    PedFilePath: setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/OneFloor_module/pedestal2.csv
-    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal3.csv
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal3.csv
+    # trigger on board 80 = layer A+B
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger80/pedestal1_csv.csv
+    # trigger on board 84 = layer E+F
+    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger84/pedestal1_csv.csv
 
 # set all gain values in ADC/PE (if Yes set to the value, if No, takes from gain csv file)
 Gains:
