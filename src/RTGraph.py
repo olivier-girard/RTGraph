@@ -26,6 +26,7 @@ from Classify import Classify
 from Visual3d import View3D
 
 from triggers import triggers
+from configurePlots import pt_size, pt_colour
 
 # architecture: le programme est divisé en trois parties, une pour chaque pannel:live, command et saved
 # les configurations des trois fenètres s'effectue grâce a deux fichiers, le SetupFile qui contient 
@@ -49,6 +50,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         self.timer_plot_update = None
         self.timer_freq_update = None
+        self.live_mode = True   # live mode set to True. Set to False when we push the pause button
         self.start_time = time.time()
         self.tsampled = []                              ## sampling time
         self.vsampled = { "freq" : [], "nevt" : [] }    ## sampled variables
@@ -88,6 +90,7 @@ class LiveWindow(QtGui.QMainWindow):
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color=(255, 0, 0),width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
+        self.pb_plates=[None]*5       # Pb plates
         # matrice 3D
         self.pos3D = np.empty((self.acq_proc.num_sensors_enabled, 3))
         self.size3D = np.empty(self.acq_proc.num_sensors_enabled)
@@ -108,6 +111,18 @@ class LiveWindow(QtGui.QMainWindow):
         self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
         self.frequency.addItem(self.FreqHist)
         
+    def setRange2Dplot(self):
+        # set 2D plot range
+        spacing_x = np.unique(self.acq_proc.x_coords)[1] - np.unique(self.acq_proc.x_coords)[0]
+        minx = np.unique(self.acq_proc.x_coords)[0]
+        maxx = np.unique(self.acq_proc.x_coords)[-1]
+        spacing_y = np.unique(self.acq_proc.y_coords)[1] - np.unique(self.acq_proc.y_coords)[0]
+        miny = np.unique(self.acq_proc.y_coords)[0]
+        maxy = np.unique(self.acq_proc.y_coords)[-1]
+        self.scatt.getViewBox().setXRange(minx-0.5*spacing_x, maxx+0.5*spacing_x, padding=None)
+        self.scatt.getViewBox().setYRange(miny-0.5*spacing_y, maxy+0.5*spacing_y, padding=None)
+        self.scatt.getViewBox().disableAutoRange()
+        
     def configure_timers(self):
         self.timer_plot_update = QtCore.QTimer(self)
         self.timer_acquisition = QtCore.QTimer(self)
@@ -123,51 +138,70 @@ class LiveWindow(QtGui.QMainWindow):
             self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos+=1
         
         #UPDATE PLOT    plot 1*3d, 1*2d, 2*histogrammes,  
-    def update_plot(self):   
-             
+    def update_plot(self):
+        
+        if self.live_mode:
+            if not self.trigger_dec:
+                return
+            if self.acq_proc.evNumber.get_partial()[0] == self.acq_proc.last_event_plotted:
+                # the event has already been plotted
+                return
+                
         current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
         if( self.acq_proc.plot_signals_scatter()==False ):                                                            # mistake between sensorenable and datapipe lenght
             self.timer_plot_update.stop()
-        elif not self.trigger_dec :
+            return
+            
+        #print("Event:",self.acq_proc.evNumber.get_partial()[0])
 
-            intensity, colors, maxintensity,self.data = self.acq_proc.plot_signals_scatter()
-            
-            #if self.integrate_on and not self.calibrate_MIP:
-            #    intensity = self.integrate(intensity)
-            
-            self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
-            if(maxintensity!=0):
-                self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=(intensity/5),brush=colors) # plot scatter
-            if(self.acq_proc.option=='Muon'):
-                x,y=self.dico_live.fit_event(self.data,plot=True)
-                self.droite.setData(x,y)                         
-                if self.calibrate_MIP : self.calibrate(intensity)                                                    # plot fit
-            else:
-                self.droite.setData([0],[0])                                                                          # clean fit
-            
-            ###### 3D #######
-            y,z,x_coord=self.dico_live.signal_xyz(intensity)                    # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
-            x_coords=self.dico_live.simulation_x(intensity)
-            for i in range(len(self.acq_proc.y_coords)):
-                self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
-            # array contenant les donnees 3d 
-            self.pos3D=np.vstack([x_coords,-self.acq_proc.Sensor_per_Stage/2+self.acq_proc.x_coords,-self.acq_proc.nb_Stage/2 + self.acq_proc.y_coords]).transpose()
-            if(maxintensity!=0):
-                self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
-            self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d    # x_coord= coordonnées simulées des rectangles 
-            if(self.option_num==1):
-                # the third dimension is calculated with random
-                pos=self.dico_live.fit_event3D(intensity,self.pos3D)
-                self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
-            if(self.option_num!=1):
-               self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
-            self.ui.plt3d.items=self.view3d.w.items
-            
-            if self.calibrate_MIP and self.int_events%2 :
-                with open(self.path_calib,"w") as csvsavedfile:
-                    writerdata=csv.writer(csvsavedfile,delimiter='\t',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                    writerdata.writerows(self.mip_calibration)
+        intensity, self.data = self.acq_proc.plot_signals_scatter()
+        
+        #if self.integrate_on and not self.calibrate_MIP:
+        #    intensity = self.integrate(intensity)
+        
+        # channel histogram
+        self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
+        
+        # 2D scatter plot
+        #maxintensity=1
+        maxintensity = np.max(intensity)
+        if(maxintensity!=0):
+            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=pt_size["linear"](intensity,maxi=1,mini=0.1),brush=pt_colour["linear"](intensity,maxi=0,mini=120)) # plot scatter
+            print("maxintensity=",maxintensity)
+        if(self.acq_proc.option=='Muon'):
+            x,y=self.dico_live.fit_event(self.data,plot=True)
+            self.droite.setData(x,y)
+            if self.calibrate_MIP : self.calibrate(intensity)                                                    # plot fit
+        else:
+            self.droite.setData([0],[0])                                                                          # clean fit
+        
+        ###### 3D #######
+        y,z,x_coord=self.dico_live.signal_xyz(intensity)                    # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
+        x_coords=self.dico_live.simulation_x(intensity)
+        for i in range(len(self.acq_proc.y_coords)):
+            self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
+        # array contenant les donnees 3d 
+        self.pos3D=np.vstack([x_coords,-self.acq_proc.Sensor_per_Stage/2+self.acq_proc.x_coords,-self.acq_proc.nb_Stage/2 + self.acq_proc.y_coords]).transpose()
+        if(maxintensity!=0):
+            #self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
+            self.scat3d.setData(pos=self.pos3D,size=pt_size["linear"](intensity,maxi=1,mini=0.1),color=self.color3D) # charge les donnees
+        self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d    # x_coord= coordonnées simulées des rectangles 
+        if(self.option_num==1):
+            # the third dimension is calculated with random
+            pos=self.dico_live.fit_event3D(intensity,self.pos3D)
+            self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
+        if(self.option_num!=1):
+           self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
+        self.ui.plt3d.items=self.view3d.w.items
+        
+        if self.calibrate_MIP and self.int_events%2 :
+            with open(self.path_calib,"w") as csvsavedfile:
+                writerdata=csv.writer(csvsavedfile,delimiter='\t',
+                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writerdata.writerows(self.mip_calibration)
+                
+        
+        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
     
     def integrate(self,intensity) :
         
@@ -309,6 +343,28 @@ class LiveWindow(QtGui.QMainWindow):
             adj=np.array([[0,1],[1,3],[3,2],[2,0]])
             self.module[i]=pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True)
             self.tracker.addItem(self.module[i])
+    
+    # draws Pb plates
+    def plates_Pb(self):
+        
+        # set Pb plates coordinates
+        sorted_x =np.unique(self.acq_proc.x_coords)
+        x_middle = 0.5*(sorted_x[-1] + sorted_x[0])   # same x position for all plates
+        y_middle = []   # y positions (between the stations)
+        sorted_y = np.unique(self.acq_proc.y_coords)
+        y_middle.append(0.5*(sorted_y[3] + sorted_y[2]))
+        y_middle.append(0.5*(sorted_y[4] + sorted_y[3]))
+        y_middle.append(0.5*(sorted_y[5] + sorted_y[4]))
+        y_middle.append(0.5*(sorted_y[6] + sorted_y[5]))
+        y_middle.append(0.5*(sorted_y[7] + sorted_y[6]))
+        
+        x_width = (30*1)/3      # 30 cm wide
+        y_width = (0.5*1)/10    # 0.5 cm thick
+        
+        for i,y_mid in enumerate(y_middle):
+            self.pb_plates[i] = pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width)
+            self.pb_plates[i].setBrush(pg.mkBrush('r'))
+            self.tracker.addItem(self.pb_plates[i])
             
 class CommandWindow(QtGui.QMainWindow):
     def __init__(self,acq):
@@ -346,11 +402,14 @@ class CommandWindow(QtGui.QMainWindow):
         self.get_file_USB_board()
         
         self.main.module_2D() 
+        self.main.plates_Pb()
         self.Display.module_2D()
         self.main.view3d.module([0.8,10,1/4])
         self.Display.view3d.module([0.8,10,1/4])
         #LOGO
         self.ui.label_logo.setPixmap(QtGui.QPixmap('/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/detector.jpg'))
+        
+        self.main.setRange2Dplot()
         
     def configure_timer(self):
         self.timer=QtCore.QTimer(self)
@@ -528,6 +587,7 @@ class CommandWindow(QtGui.QMainWindow):
         
         self.acq_proc.start_acquisition(cmd,options)
         self.liverun=True
+        self.main.live_mode = True
         self.acq_proc.lastpos=True
         self.main.timer_acquisition.start(self.frequency)
         self.main.timer_plot_update.start(self.frequency)
@@ -535,6 +595,7 @@ class CommandWindow(QtGui.QMainWindow):
     
     # DISPLAY PAUSE
     def live_pause(self):
+        self.main.live_mode = False
         self.main.timer_plot_update.stop()
         self.main.show()   
     
@@ -542,6 +603,7 @@ class CommandWindow(QtGui.QMainWindow):
     def live_start(self):
         self.acq_proc.lastpos=True
         self.liverun=True
+        self.main.live_mode = True
         self.main.timer_plot_update.start(self.frequency)
     
     # STOP DAQ
@@ -568,7 +630,7 @@ class CommandWindow(QtGui.QMainWindow):
         self.acq_proc.lastpos=False
         self.main.timer(cmd="right")
         self.main.timer_plot_update.singleShot(2,self.main.update_plot)
-        self.main.show()  
+        self.main.show()
     
     ####### SAVED ###########
     # DISPLAY PAUSE

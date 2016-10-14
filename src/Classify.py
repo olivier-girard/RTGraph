@@ -49,7 +49,6 @@ class Classify(object):
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
         
         
-        
     def change_mode(self):
         if(self.key=="live"):
             self.cmd=self.acq_proc.Class_EventLive

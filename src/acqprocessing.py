@@ -23,6 +23,7 @@ class AcqProcessing:
         self.num_sensors_enabled = 8*64#nbr sensor enable with usbboard 
         self.num_uplinks = 8
         self.num_channels_per_uplinks = 64
+        self.MAX_adc = 4095
         self.num_integrations = 100
         self.integrate = False # no integration mode
         self.queue = multiprocessing.Queue()
@@ -45,6 +46,9 @@ class AcqProcessing:
         self.Sensor_per_Stage=0
         #recupère les csv pedestals et gains
         self.calibration_all_channels = dict([('pedestals',np.empty(self.num_sensors_enabled)), ('gains',np.empty(self.num_sensors_enabled))])
+        
+        self.last_event_plotted = -1
+        
         
         #START DAQ     get data from usb board on the terminal   show pipeprocessing in python
     
@@ -144,22 +148,25 @@ class AcqProcessing:
         # difference entre data et intensity ---> taille et intensity=log(data)
         #
         colors=[]
-        if(self.lastpos==True):
+        if(self.lastpos==True): # LIVE
             data = self.Class_EventLive[self.option].get_partial()# last value
             self.Class_EventLive[self.option].free_pos=self.Class_EventLive[self.option].curr_pos-1
-        else:
-            data = self.Class_EventLive[self.option][self.Class_EventLive[self.option].free_pos] 
+        else:   # PAUSE
+            data = self.Class_EventLive[self.option][self.Class_EventLive[self.option].free_pos]
         if(len(data)!=len(self.sensor_ids)):
             log.warning("The geometry file don't fit with data length")
             self.sp.stop()
             return False
-        #intensity = data[self.sensor_ids]
-        intensity = data
-        maxintensity = np.max(intensity)
+        intensity = data/self.calibration_all_channels['normalization']
+        #intensity = np.log(intensity+1) # commented: we want to return intensity as proportional to the signal
         for i in range(len(self.sensor_ids)):
-            intensity[i]=m.log(intensity[i]+1)   # log de data
-            colors.append(pg.intColor(2+intensity[i], hues=(100/self.PetoMip)*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) #int(max(data))
-        return intensity, colors, maxintensity,data 
+            #intensity[i]=m.log(intensity[i]+1)   # log de data
+            """if self.calibration_all_channels['normalization'][i]>0:
+                intensity[i] = data[i]/self.calibration_all_channels['normalization'][i]
+            if intensity[i]>1:
+                intensity[i] = 1"""
+            #colors.append(pg.intColor(2+intensity[i], hues=(100/self.PetoMip)*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) #int(max(data))
+        return intensity, data 
     
     #PROCESS DATA 
     def plot_signals_map(self):   
@@ -348,4 +355,15 @@ class AcqProcessing:
         else:
             log.info("Setting gains from file {}".format(self.path_gain_file))
             self.loadCSVfile(self.path_gain_file, 'gains')
+        
+        # defines max_intensity for signal normalization
+        # normalization = (MAX_adc - pedestal)/(gain * PEtoMIP)
+        # with MAX_adc=4095
+        
+        norm_calib = np.empty(self.num_sensors_enabled)
+        for i in range(self.num_sensors_enabled):
+            norm_calib[i] = (self.MAX_adc - self.calibration_all_channels['pedestals'][i])/(self.calibration_all_channels['gains'][i]*self.PetoMip)
+        
+        self.calibration_all_channels['normalization'] = norm_calib
+        log.info("Normalization factors defined for each channels enabled")
         
