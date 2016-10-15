@@ -1,4 +1,4 @@
-
+# trigger is True if we accept the event
 
 def trigger_nlayers( datagrid, **options ) :
     

@@ -46,7 +46,12 @@ class Classify(object):
         data = np.genfromtxt(self.sensors_path, dtype=np.float)
         self.acq_proc.load_general_setup_file(self.setup_path)
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
+<<<<<<< HEAD
                 
+=======
+        
+        
+>>>>>>> 21b0b2af1ba6c933e3163aeac9bcb0243cda82a6
     def change_mode(self):
         if(self.key=="live"):
             self.cmd=self.acq_proc.Class_EventLive
