@@ -10,7 +10,6 @@ import numpy as np
 import math
 import random as rand
 
-
 import logging as log
 import logging.handlers
 import argparse
@@ -25,8 +24,8 @@ from ringbuffer2d import RingBuffer2D
 
 class Classify(object):   
 # object qui renvoie un dictionnaire trié
-# Il possède une fonction de trie 
-#            une fonction donnant l'energie deposée
+# Il possede une fonction de trie 
+#            une fonction donnant l'energie depose'
 #            une fonction donnant le nombre de sensors ayant recu du signal
 #......
 
@@ -47,9 +46,7 @@ class Classify(object):
         data = np.genfromtxt(self.sensors_path, dtype=np.float)
         self.acq_proc.load_general_setup_file(self.setup_path)
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
-        
-        
-        
+                
     def change_mode(self):
         if(self.key=="live"):
             self.cmd=self.acq_proc.Class_EventLive
@@ -306,35 +303,42 @@ class Classify(object):
 
 ## Lest_squares is the one that works.
 ## Iterative least_squares repeates the least_squares weighting the points by the inverse of the residual
-## meaning that points far away become less and less important. Fit stops when the angular coessificent
-## changes less than 10% from the previous iteration. (To be tested!!!) 
+## meaning that points far away become less and less important. Fit stops when the parameters
+## changes less than 0.1% from the previous iteration. (Works great!)
 
-def get_weights(m,y0,x,y,w) :
+def get_weights(m,y0,xv,yv,wv=None) :
     
-    nw = []
-    if len(w) == 0 : w = [1.]*len(x)
-    for x,y in zip(x,y) :
-        res = y - ( m*x + y0 )
-        nw.append(w * 1./res)
-    return nw
+    nws = []
+    if wv is None : wv = [1.]*len(x)
+    for x,y,w in zip(xv,yv,wv) :
+        res = abs(y - ( m * x + y0 ))
+        if res < 1e-9 : res = 1e-9
+        nw = w * 1./res
+        if nw > 1e9 : nw = 1e9
+        nws.append(nw)
+
+    return nws
 
 def iterative_least_squares(x,y) :
     
     w = [1.]*len(x)
-    prevm = -999999
-    m, y0 = 0, 0
-    print("Iterative fitting")
+    prevm, prevy0 = -1e10, -1e10
+    m, y0, it = 0, 0, 0
     while True :
         
-        if m is None:
-            break;
         m,y0 = least_squares_w(x,y,w)
-        print (m, y0)
-        if abs(m - prevm)/m < 0.1 : break
+        
+        print "Iteration: ", it
+        print "\nm = {0}, y0 = {1}\n".format( m, y0 )
+
+        if m is None : break
+        if abs( (m - prevm) / m ) < 0.001 and abs( (y0 - prevy0) / y0 ) < 0.001 : break
         prevm = m
+        prevy0 = y0
         
         w = get_weights(m,y0,x,y,w)
-    
+        it+=1
+        
     return m,y0
 
 def least_squares( x, y ) :
@@ -360,31 +364,32 @@ def least_squares( x, y ) :
     
     return m,y0
 
-def least_squares_w( x, y, w ) :
+def least_squares_w( xv, yv, w ) :
 
-    if len(x) != len(y) :  
-        print("ATTENTION: x and y have different lenghts, no fit performed")
+    if len(xv) != len(yv) != len(w) :  
+        print("ATTENTION: x and y (and w) have different lenghts, no fit performed")
         return
-        
+
     sumw = sum(w)
     x,y,x2,xy = [],[],[],[]
-    for xi,yi,wi in zip(x,y,w) :
+    for xi,yi,wi in zip(xv,yv,w) :
         x.append(wi*xi)
         y.append(wi*yi)
     
     mean_x =  sum(x) / float(sumw)
-    
-    for xi,yi,wi in zip(x,y,w) :
+    mean_y =  sum(y) / float(sumw)
+
+    for xi,yi,wi in zip(xv,yv,w) :
         xy.append(wi*(xi - mean_x)*(yi - mean_y))
-        x2,append(wi*(xi - mean_x)**2)
+        x2.append(wi*(xi - mean_x)**2)
     
     denom = sum(x2)
-    if denom < 1.e-6 : return None, None
-    
-    mean_y = sum( y ) / float(sumw)
+    if abs(denom) < 1.e-12 : return None, xv[0]
     
     sum_xy = sum( xy )
     m = sum_xy / denom 
     y0 = mean_y - m*mean_x
     
     return m,y0
+
+
