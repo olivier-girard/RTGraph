@@ -159,13 +159,7 @@ class AcqProcessing:
             return False
         intensity = data/self.calibration_all_channels['normalization']
         #intensity = np.log(intensity+1) # commented: we want to return intensity as proportional to the signal
-        for i in range(len(self.sensor_ids)):
-            #intensity[i]=m.log(intensity[i]+1)   # log de data
-            """if self.calibration_all_channels['normalization'][i]>0:
-                intensity[i] = data[i]/self.calibration_all_channels['normalization'][i]
-            if intensity[i]>1:
-                intensity[i] = 1"""
-            #colors.append(pg.intColor(2+intensity[i], hues=(100/self.PetoMip)*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) #int(max(data))
+        
         return intensity, data 
     
     #PROCESS DATA 

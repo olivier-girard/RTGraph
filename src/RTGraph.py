@@ -76,10 +76,11 @@ class LiveWindow(QtGui.QMainWindow):
         self.int_events = 0
         self.int_intensities = []
         self.int_colors = []
+        self.theta = []
         
         # configures plots
         self.configure_plot()
-        if not self.calibrate_MIP : self.load_calibration()
+        #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
 
         # CONFIGURATION
     def configure_plot(self):
@@ -88,7 +89,7 @@ class LiveWindow(QtGui.QMainWindow):
         self.Hist=pg.PlotCurveItem()                                        # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
-        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color=(255, 0, 0),width=3))                            # track fit
+        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
         self.pb_plates=[None]*5       # Pb plates
         # matrice 3D
@@ -156,8 +157,8 @@ class LiveWindow(QtGui.QMainWindow):
 
         intensity, self.data = self.acq_proc.plot_signals_scatter()
         
-        #if self.integrate_on and not self.calibrate_MIP:
-        #    intensity = self.integrate(intensity)
+        if self.integrate_on and not self.calibrate_MIP:
+            intensity = self.integrate(intensity)
         
         # channel histogram
         self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
@@ -166,14 +167,22 @@ class LiveWindow(QtGui.QMainWindow):
         #maxintensity=1
         maxintensity = np.max(intensity)
         if(maxintensity!=0):
-            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=pt_size["linear"](intensity,maxi=1,mini=0.1),brush=pt_colour["linear"](intensity,maxi=0,mini=120)) # plot scatter
-            print("maxintensity=",maxintensity)
-        if(self.acq_proc.option=='Muon'):
-            x,y=self.dico_live.fit_event(self.data,plot=True)
-            self.droite.setData(x,y)
-            if self.calibrate_MIP : self.calibrate(intensity)                                                    # plot fit
+            # point size and colour are defined in file configurePlots.py
+            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,size=pt_size["linear"](intensity,maxi=1,mini=0.1,saturate_at=0.5),brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
+        if(self.dico_live.last_event_type=="muon"):
+            # Draws the fit
+            if self.live_mode:
+                self.droite.setData(self.dico_live.fit_results['reg_y'],self.dico_live.fit_results['reg_z'])
+            else:   # must redo the fit
+                reg_y, reg_z, theta, chi2 = fit_event(self.data)
+                print(reg_y, reg_z)
+                self.droite.setData(reg_y,reg_z)
         else:
             self.droite.setData([0],[0])                                                                          # clean fit
+        # checks if autorange is on: if yes, disable it
+        if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
+            self.setRange2Dplot()
+        
         
         ###### 3D #######
         y,z,x_coord=self.dico_live.signal_xyz(intensity)                    # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
@@ -199,9 +208,10 @@ class LiveWindow(QtGui.QMainWindow):
                 writerdata=csv.writer(csvsavedfile,delimiter='\t',
                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
                 writerdata.writerows(self.mip_calibration)
-                
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
+        
+        input("Waiting that you click")
     
     def integrate(self,intensity) :
         
@@ -219,19 +229,18 @@ class LiveWindow(QtGui.QMainWindow):
         
         return np.array(int_intensity)
 
-    def calibrate(self,intensity) :
-        
+    def calibrate(self,intensity) : # intensity is data here !
         self.int_events += 1
         if len(self.mip_calibration) == 0 :
             for ni in intensity :
-                 if i > 0 : self.mip_calibration.append( ni, 1 )
-                 else : self.mip_calibration.append( 0, 0 )
+                 if ni > 0 : self.mip_calibration.append( (ni, 1) )
+                 else : self.mip_calibration.append( (0, 0) )
             return
             
         newcalib = []    
         for ni,i in zip(intensity,self.mip_calibration) :
-            nevts, intens = i
-            if i > 0 : newcalib.append( ( (nevts*intens + ni)/(nevts+1), nevts+1 ) )
+            intens, nevts = i
+            if ni > 0 : newcalib.append( ( (nevts*intens + ni)/(nevts+1), nevts+1 ) )
             else : newcalib.append(i)
                     
         self.mip_calibration = newcalib
@@ -271,12 +280,15 @@ class LiveWindow(QtGui.QMainWindow):
                 ## Only for dn > 0 to avoid negative frequencies when time resets
                 if dn > 0 : self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
             
-            
-            self.acq_proc.Class_EventLive,self.theta = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
+            self.acq_proc.Class_EventLive = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
             self.event_seperete=self.dico_live.event_id() # event's id 
             
-            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-50, 50, 20))   # data histogram
+            if self.dico_live.last_event_type == "muon":
+                self.theta.append(self.dico_live.fit_results['theta'])  # this is not the true theta (in terms of real coordinates)! Need to correct for that!
+                if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
+            
+            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 36))   # data histogram
             self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
             self.FreqHist.setData(
                 [x[0] for x in self.vsampled["freq"]],
@@ -363,7 +375,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         for i,y_mid in enumerate(y_middle):
             self.pb_plates[i] = pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width)
-            self.pb_plates[i].setBrush(pg.mkBrush('r'))
+            self.pb_plates[i].setBrush(pg.mkBrush('c'))
             self.tracker.addItem(self.pb_plates[i])
             
 class CommandWindow(QtGui.QMainWindow):

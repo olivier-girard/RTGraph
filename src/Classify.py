@@ -9,6 +9,7 @@ from pyqtgraph.Qt import QtGui, QtCore
 import numpy as np
 import math
 import random as rand
+import yaml
 
 import logging as log
 import logging.handlers
@@ -21,6 +22,8 @@ from SavedWindow import *
 from acqprocessing import AcqProcessing
 from ringbuffer2d import RingBuffer2D
 
+from fit_track import *
+
 
 class Classify(object):   
 # object qui renvoie un dictionnaire trié
@@ -32,7 +35,6 @@ class Classify(object):
     def __init__(self,cmd,sensorpath,setuppath):    #cmd = dico Live (Class_EventLive) or dico Saved  (Class_EventSaved)  #data = Tableau 2D
         self.acq_proc=AcqProcessing()
         self.cmd=cmd # dico 
-        self.theta=[]
         self.sensors_path=sensorpath
         self.setup_path=setuppath
         self.key="live"
@@ -41,17 +43,17 @@ class Classify(object):
         self.securite_random=0
         self.configure()
         self.i=0
+        self.last_event_type = ""
+        self.fit_results = dict.fromkeys(['reg_y','reg_z','theta','chi2'])
 
     def configure(self):
         data = np.genfromtxt(self.sensors_path, dtype=np.float)
         self.acq_proc.load_general_setup_file(self.setup_path)
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
-<<<<<<< HEAD
-                
-=======
-        
-        
->>>>>>> 21b0b2af1ba6c933e3163aeac9bcb0243cda82a6
+        self.x_para = { "min":min(self.acq_proc.x_coords) , "max":max(self.acq_proc.x_coords) , "pitch":(np.unique(self.acq_proc.x_coords)[1] - np.unique(self.acq_proc.x_coords)[0]) }
+        self.y_para = { "min":min(self.acq_proc.y_coords) , "max":max(self.acq_proc.y_coords) , "pitch":(np.unique(self.acq_proc.y_coords)[1] - np.unique(self.acq_proc.y_coords)[0]) }
+        self.parameters()
+    
     def change_mode(self):
         if(self.key=="live"):
             self.cmd=self.acq_proc.Class_EventLive
@@ -79,7 +81,43 @@ class Classify(object):
                 Signal_per_Stage=0
                 Mip_per_Stage=0
         return Nbr_Signal_per_Stage, Nbr_Mip_per_Stage
+    
+    def isMuon(self, data):
+        # Muons - we want:
+        # 1) small energy deposit: typically below 30 MIPs in total and below 10 MIPs per layer
+        # 2) at least a certain number of layers detecting: let's say 5
+        # 3) no more than two hits per stage
+        # 4) a fit chi^2 small <-- so we need to perform a fit before classifying
         
+        signal_per_stage,mip_per_stage=self.signal_per_stage(data)
+        energy_tot=sum(mip_per_stage)  # total energy deposit
+        small_Edeposit_per_stage = all(E <= self.muon_energy_deposit_per_plane for E in mip_per_stage)
+        Nlayer_with_signal = sum(sig > 0 for sig in signal_per_stage)
+        max_Nhits_per_layer = max(signal_per_stage)
+        
+        if energy_tot<=self.muon_tot_energy_deposit and small_Edeposit_per_stage and Nlayer_with_signal>=self.muon_detect_point and max_Nhits_per_layer<=self.muon_number_hits_per_plane:
+            # this might be a muon
+            # check chi2
+            # for simple events (1 hit per layer), just ust least square:
+            chi2 = 0
+            if max_Nhits_per_layer==1:
+                reg_y, reg_z, theta, chi2 = self.fit_event(data,least_squares)
+            # for more comlicated events:
+            if max_Nhits_per_layer>1 or chi2>self.muon_chi2:
+                #reg_y, reg_z, theta, chi2 = self.fit_event(data,iterative_least_squares)
+                reg_y, reg_z, theta, chi2 = self.fit_event(data,least_squares,True)
+            #reg_y, reg_z, theta, chi2 = self.fit_event(data,iterative_least_squares)
+            if chi2 <= self.muon_chi2:
+                self.fit_results['reg_y'] = reg_y
+                self.fit_results['reg_z'] = reg_z
+                self.fit_results['theta'] = theta
+                self.fit_results['chi2']  = chi2
+                self.last_event_type = "muon"
+                return True
+        return False
+        
+        
+    
     def classify_event(self,data,event):
         ts = time.time()
         counter=[]
@@ -87,9 +125,19 @@ class Classify(object):
         data=data.ravel()
         self.data=data
         if(np.all(data==0)==False):
+            
+            # all events
             self.cmd['AllEvents'].append(data)
             self.event[0].append(event[0])
             self.energie[0].append(self.energie_deposite(data))
+            
+            if self.isMuon(data):
+                self.cmd['Muon'].append(data)
+                self.event[1].append(event[0])
+                self.energie[1].append(self.energie_deposite(data))
+            else:
+                self.last_event_type = "None"
+            
             for j, i in enumerate(Nbr_Signal_per_Stage):
                 if(i==1 and Nbr_Mip_per_Stage[j]<35/self.acq_proc.PetoMip):
                     counter.append(1)
@@ -98,10 +146,10 @@ class Classify(object):
                             if(i==1 and self.energie_deposite(data)<140/self.acq_proc.PetoMip):   ####  Muon
                                 counter.append(1)
                                 if(sum(counter)>=len(Nbr_Signal_per_Stage)-2 and j==len(Nbr_Signal_per_Stage)-4):
-                                    self.cmd['Muon'].append(data)
+                                    pass
+                                    """self.cmd['Muon'].append(data)
                                     self.event[1].append(event[0])
-                                    self.energie[1].append(self.energie_deposite(data))
-                                    self.theta.append(self.fit_event(data,plot=False))
+                                    self.energie[1].append(self.energie_deposite(data))"""
                             if(i==0):counter.append(0)
                             if(i>1 and Nbr_Mip_per_Stage[j]>20/self.acq_proc.PetoMip):    ####  Electron
                                 self.cmd['Electron'].append(data)
@@ -118,17 +166,20 @@ class Classify(object):
                 self.energie[4].append(self.energie_deposite(data))
         te = time.time()
         #print("{}",format(te-ts))
-        return self.cmd,np.asarray(self.theta)
+        return self.cmd
         
                                     
     def parameters(self):
         with open(self.setup_path,'r') as f:
-            cfg=yalm.load(f)
-        self.muon_energie = cfg['Muon']['EnergieDeposite']
-        self.muon_detect_point = cfg['Muon']['DetectionPointNumber']
-        self.muon_point_per_plane= cfg['Muon']['PointPerPlane']
-        self.elecron_energie_per_plane=cfg['Electron']['EnergieLimitePerPlane']
-        self.elecron_nb_etage=cfg['Electron']['PlaneNumber']
+            cfg=yaml.load(f)
+        self.muon_tot_energy_deposit = cfg['Muon']['TotalEnergyDeposit']
+        self.muon_energy_deposit_per_plane = cfg['Muon']['EnergyDepositPerPlane']
+        self.muon_detect_point = cfg['Muon']['NumberOfDetectionPoints']
+        self.muon_number_hits_per_plane = cfg['Muon']['MaximumNumberOfHitsPerPlane']
+        self.muon_chi2= cfg['Muon']['MaxChi2']
+        log.info("Classification parameters loaded from file: {}".format(self.setup_path))
+        #self.elecron_energie_per_plane=cfg['Electron']['EnergieLimitePerPlane']
+        #self.elecron_nb_etage=cfg['Electron']['PlaneNumber']
         
         
     def energie_deposite(self,data):   
@@ -216,36 +267,43 @@ class Classify(object):
         pos_signal[1]=-10*(pos_signal[0]-pos_signal[1])+pos_signal[1]
         return pos_signal[0:2]             
         
-    def fit_event(self,data,plot=True):     
+    def fit_event(self,data,fittype=iterative_least_squares,PatRec=False):
     
         # new regression with least squares method
-        theta = 0
+        theta = 0   # theta is the angle from the vertical (y)
         y,z,x = self.signal_xyz(data)
-        m, z0 = least_squares(y,z)
-        #m, z0 = iterative_least_squares(y,z)
+        #m, z0, chi2 = least_squares(y,z)
+        #m, z0, chi2 = iterative_least_squares(y,z)
+        if PatRec:
+            y,z = reject_hits_pattern_recognition2(y,z,self.x_para,self.y_para,2.5)
+        m, z0, chi2 = fittype(y,z)
+        
+        # pattern recognition:
+        #reject_hits_pattern_recognition(y,z,self.x_para,self.y_para,1)
+        #reject_hits_pattern_recognition2(y,z,self.x_para,self.y_para,2)
+        
         reg_y, reg_z = y, []
         
         if(m is None) : ## straight vertical tracks
-            theta = 90
+            theta = 0
             reg_z = np.arange(1,len(y)+1)
+        elif(m == 0):
+            theta = 90
+            reg_z = z[0]*len(y)
         else :
             reg_y = []
-            theta  = (math.atan(m)*180.)/math.pi
+            theta  = (math.atan(-1./m)*180.)/math.pi
             for zi in z :
                 yr = (zi - z0)/m
                 if 0 < yr < 33 : 
                     reg_y.append( yr )
                     reg_z.append( zi )
             #if(plot==True):print (m, z0, theta)
-        
-        if(plot==True):
-            return reg_y, reg_z
-        return theta 
-            
-            
+        print("m=",m,"   theta=",theta,"   chi2=",chi2)
+        return reg_y, reg_z, theta, chi2
         
 ############################### non utilisé ###########################    
-    def angle(self,data):  
+    def angle(self,data):                                                                                                                                                                                   
         angle=data
         nbr=0
         nbr_ev=[]
@@ -274,7 +332,6 @@ class Classify(object):
                                 self.cmd['Muon'].append(data)
                                 self.event[1].append(event[0])
                                 self.energie[1].append(self.energie_deposite(data))
-                                self.theta.append(self.fit_event(data,plot=False))
             if(i==0):counter.append(0)
     
     def class_electron(self):
@@ -303,98 +360,3 @@ class Classify(object):
     def class_electron_E(self):
         print()
     
-
-################################################
-
-## Lest_squares is the one that works.
-## Iterative least_squares repeates the least_squares weighting the points by the inverse of the residual
-## meaning that points far away become less and less important. Fit stops when the parameters
-## changes less than 0.1% from the previous iteration. (Works great!)
-
-def get_weights(m,y0,xv,yv,wv=None) :
-    
-    nws = []
-    if wv is None : wv = [1.]*len(x)
-    for x,y,w in zip(xv,yv,wv) :
-        res = abs(y - ( m * x + y0 ))
-        if res < 1e-9 : res = 1e-9
-        nw = w * 1./res
-        if nw > 1e9 : nw = 1e9
-        nws.append(nw)
-
-    return nws
-
-def iterative_least_squares(x,y) :
-    
-    w = [1.]*len(x)
-    prevm, prevy0 = -1e10, -1e10
-    m, y0, it = 0, 0, 0
-    while True :
-        
-        m,y0 = least_squares_w(x,y,w)
-        
-        print "Iteration: ", it
-        print "\nm = {0}, y0 = {1}\n".format( m, y0 )
-
-        if m is None : break
-        if abs( (m - prevm) / m ) < 0.001 and abs( (y0 - prevy0) / y0 ) < 0.001 : break
-        prevm = m
-        prevy0 = y0
-        
-        w = get_weights(m,y0,x,y,w)
-        it+=1
-        
-    return m,y0
-
-def least_squares( x, y ) :
-
-    if len(x) != len(y) :  
-        print("ATTENTION: x and y have different lenghts, no fit performed")
-        return
-        
-    N = len(y)
-    mean_x = sum( x ) / float(N)
-    denom = sum( [ (xi - mean_x)**2 for xi in x ] )
-    if denom < 1.e-6 : return None, x[0]
-    
-    mean_y = sum( y ) / float(N)
-    
-    xy = []
-    for xi,yi in zip(x,y) :
-        xy.append((xi - mean_x)*(yi - mean_y))
-    
-    sum_xy = sum( xy )
-    m = sum_xy / denom 
-    y0 = mean_y - m*mean_x
-    
-    return m,y0
-
-def least_squares_w( xv, yv, w ) :
-
-    if len(xv) != len(yv) != len(w) :  
-        print("ATTENTION: x and y (and w) have different lenghts, no fit performed")
-        return
-
-    sumw = sum(w)
-    x,y,x2,xy = [],[],[],[]
-    for xi,yi,wi in zip(xv,yv,w) :
-        x.append(wi*xi)
-        y.append(wi*yi)
-    
-    mean_x =  sum(x) / float(sumw)
-    mean_y =  sum(y) / float(sumw)
-
-    for xi,yi,wi in zip(xv,yv,w) :
-        xy.append(wi*(xi - mean_x)*(yi - mean_y))
-        x2.append(wi*(xi - mean_x)**2)
-    
-    denom = sum(x2)
-    if abs(denom) < 1.e-12 : return None, xv[0]
-    
-    sum_xy = sum( xy )
-    m = sum_xy / denom 
-    y0 = mean_y - m*mean_x
-    
-    return m,y0
-
-
