@@ -52,7 +52,8 @@ class AutoWindow(QtGui.QMainWindow):
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
-        self.module=[pg.GraphItem()]*400
+                
+        self.modules = None
         
         self.hdata     = None
         self.fdata     = None
@@ -73,13 +74,17 @@ class AutoWindow(QtGui.QMainWindow):
         
         self.timer=QtCore.QTimer(self)
         self.timer.timeout.connect(self.change_display)
-        self.timer.start(2000)
+        self.timer.start(5000)
         
     def set_data(self,hist = None,freq = None,scatt = None,line = None) :
         if hist  : self.hdata     = hist
         if freq  : self.fdata     = freq
         if scatt : self.scattdata = scatt
         if line  : self.linedata  = line
+
+    def set_modules(self, modules):
+        self.modules = modules
+        self.steps[0] += self.modules
 
     def change_display(self) :
         
@@ -93,16 +98,15 @@ class AutoWindow(QtGui.QMainWindow):
         for it in self.steps[prevstep] :
             self.curdisplay.removeItem(it)
         for it in self.steps[self.curstep] :
-            print ("Adding element")
             self.curdisplay.addItem(it)
         
-        if hist and freq and scatt and line : 
-            print ("Setting data")
+        if self.hdata and self.fdata and self.scattdata and self.linedata : 
+            print("Setting data")
             self.scatt.setData(**self.scattdata)
             self.droite.setData(*self.linedata)
-            self.Hist.setData(*self.hdata)
-            self.FreqHist.setData(*self.fdata)
-			
+            self.Hist.setData(*self.hdata,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
+            self.FreqHist.setData(*self.fdata,stepMode=False, fillLevel=0, brush=(0, 0, 255, 80))
+            
 class LiveWindow(QtGui.QMainWindow):
     
     integrate_on = False
@@ -255,10 +259,10 @@ class LiveWindow(QtGui.QMainWindow):
             self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
                 size=pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
                 brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
-                self.Auto.set_data(scatt=
-                	{ "x"  : self.acq_proc.x_coords, "y":self.acq_proc.y_coords,
-                	"size" : pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
-                	"brush": pt_colour["linear"](intensity,maxi=0,mini=90) }
+            self.Auto.set_data(scatt=
+                    { "x"  : self.acq_proc.x_coords, "y":self.acq_proc.y_coords,
+                    "size" : pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
+                    "brush": pt_colour["linear"](intensity,maxi=0,mini=90) }
                 )
                 
         if (not self.integrate_on) and event_type=="Muon":
@@ -299,7 +303,7 @@ class LiveWindow(QtGui.QMainWindow):
             self.ui.plt3d.items=self.view3d.w.items
         
         # update of the angle histogram
-        self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 36))   # data histogram
+        self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 18))   # data histogram
         self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
         self.Auto.set_data(hist=(self.x,self.y))
         
@@ -310,8 +314,6 @@ class LiveWindow(QtGui.QMainWindow):
                 writerdata.writerows(self.mip_calibration)
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
-        
-        #self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
         
         #input("Waiting that you click")
     
@@ -389,15 +391,6 @@ class LiveWindow(QtGui.QMainWindow):
             self.event_seperete=self.dico_live.event_id() # event's id 
             
             if self.dico_live.last_event_type == "Muon":
-                """slope = None
-                if "m" in self.dico_live.fit_results : slope = self.dico_live['MuonFitPara'].get_partial()[0]['m']
-                #print("slope=",slope)
-                if slope :
-                    self.theta.append(math.atan(-1./(slope*self.slope_conversion_factor)))   # this is the right theat angle, the one measured with real coordinates
-                    #self.theta.append(self.dico_live.fit_results['theta'])  # this is not the true theta (in terms of real coordinates)! Need to correct for that!
-                    #print("true theta=",self.theta)
-                else :
-                    self.theta.append(0.)"""
                 slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
                 if slope!=None:
                     self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
@@ -462,6 +455,7 @@ class LiveWindow(QtGui.QMainWindow):
     def module_2D(self):
         sensor=np.array([self.acq_proc.x_coords,self.acq_proc.y_coords])
         x=0.4;y=0.2
+        module_list = []
         for i in range(len(self.acq_proc.x_coords)):
             pos=np.array([[sensor[0][i]-x,sensor[1][i]-y],[sensor[0][i]-x,sensor[1][i]+y],[sensor[0][i]+x,sensor[1][i]-y],[sensor[0][i]+x,sensor[1][i]+y]])
             lines = np.array([
@@ -473,6 +467,8 @@ class LiveWindow(QtGui.QMainWindow):
             adj=np.array([[0,1],[1,3],[3,2],[2,0]])
             self.module[i]=pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True)
             self.tracker.addItem(self.module[i])
+            module_list.append(pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True))
+        return module_list
     
     # draws Pb plates
     def plates_Pb(self):
@@ -491,10 +487,14 @@ class LiveWindow(QtGui.QMainWindow):
         x_width = (30*1)/3      # 30 cm wide
         y_width = (0.5*1)/10    # 0.5 cm thick
         
+        plate_list = []
         for i,y_mid in enumerate(y_middle):
             self.pb_plates[i] = pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width)
             self.pb_plates[i].setBrush(pg.mkBrush('c'))
             self.tracker.addItem(self.pb_plates[i])
+            plate_list.append(pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width))
+            plate_list[i].setBrush(pg.mkBrush('c'))
+        return plate_list
             
 class CommandWindow(QtGui.QMainWindow):
     def __init__(self,acq):
@@ -532,8 +532,10 @@ class CommandWindow(QtGui.QMainWindow):
         self.get_value_USB_board()
         self.get_file_USB_board()
         
-        self.main.module_2D() 
-        self.main.plates_Pb()
+        modules = self.main.module_2D() 
+        plates = self.main.plates_Pb()
+        self.main.Auto.set_modules(modules+plates)
+        
         self.Display.module_2D()
         self.main.view3d.module([0.8,10,1/4])
         self.Display.view3d.module([0.8,10,1/4])
