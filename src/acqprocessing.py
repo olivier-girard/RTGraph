@@ -12,7 +12,8 @@ from ringbuffer2d import RingBuffer2D
 from pipeprocess import PipeProcess
 from multiprocessing import Value
 from decimal import Decimal
-
+import time, sys
+from triggers import triggers
 
 class AcqProcessing:
     def __init__(self):
@@ -49,7 +50,6 @@ class AcqProcessing:
         
         self.last_event_plotted = -1
         
-        
         #START DAQ     get data from usb board on the terminal   show pipeprocessing in python
     
     
@@ -61,6 +61,15 @@ class AcqProcessing:
                               cmd=cmd,
                               args=options)       
         self.sp.start()
+        #time.sleep(1)
+        #f = open("myfile","w")
+        #oldstdin = sys.stdin
+        #sys.stdin = f
+        #f.write('amexamex')
+        #f.close()
+        #sys.stdin = oldstdin
+        #print ("Written")
+        
     
     #STOP DAQ 
     def stop_acquisition(self):
@@ -90,8 +99,8 @@ class AcqProcessing:
             newfileAll=open(self.pathdico_temp+'AllEvents.csv',"w")
             newfileMuon=open(self.pathdico_temp+'Muon.csv',"w")
             newfileElectron=open(self.pathdico_temp+'Electron.csv',"w")
-            newfileMuonDecay=open(self.pathdico_temp+'MuonDecay.csv',"w")
-            newfileAll.close();newfileMuon.close();newfileElectron.close();newfileMuonDecay.close()
+            newfileDisintegration=open(self.pathdico_temp+'Disintegration.csv',"w")
+            newfileAll.close();newfileMuon.close();newfileElectron.close();newfileDisintegration.close()
         #saving
         if(save=='save'):
             for k,i in enumerate(self.Class_EventLive[key]):
@@ -242,6 +251,8 @@ class AcqProcessing:
         
     def reset_event_classification_live(self):
         self.Event_Muon = RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float)
+        self.Event_muon_FitPara = RingBuffer2D(self.num_integrations,cols=1,dtype=object)
+        self.All_Events_muon_FitPara = RingBuffer2D(self.num_integrations,cols=1,dtype=object)
         self.Event_HighE_Electron = RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float)                                             
         self.Event_Electron = RingBuffer2D(self.num_integrations,
                                     cols=self.num_sensors_enabled,dtype=float)
@@ -249,7 +260,12 @@ class AcqProcessing:
                                     cols=self.num_sensors_enabled,dtype=float)
         self.All_Events = RingBuffer2D(self.num_integrations,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.Class_EventLive = {'Muon':(self.Event_Muon),'Electron':(self.Event_Electron),'MuonDecay':(self.Event_Muon_decay),'AllEvents':(self.All_Events),'HighEnergieElectron':(self.Event_HighE_Electron)}           
+        self.All_Events_type = RingBuffer2D(self.num_integrations,
+                                    cols=1,dtype=object)
+        self.Class_EventLive = {'Muon':(self.Event_Muon),'MuonFitPara':self.Event_muon_FitPara,'Electron':(self.Event_Electron),
+                                    'Disintegration':(self.Event_Muon_decay),'AllEvents':(self.All_Events),
+                                    'HighEnergyElectron':(self.Event_HighE_Electron),'AllEventsType':(self.All_Events_type),
+                                    'AllEventsMuonFitPara':(self.All_Events_muon_FitPara)}
         log.info("Buffers live cleared size {}".format(self.num_integrations)) 
     
     def reset_event_classification_saved(self,lenght):
@@ -264,7 +280,7 @@ class AcqProcessing:
                                     cols=self.num_sensors_enabled,dtype=float)
         self.data_load=RingBuffer2D(lenght,                         # datafile loaded in 
                                     cols=self.num_sensors_enabled+2,dtype=float)   # le + 2 est pour le numero event et le time
-        self.Class_EventSaved={'Muon':(self.Event_Muon_s),'Electron':(self.Event_Electron_s),'MuonDecay':(self.Event_Muon_decay_s),'AllEvents':(self.All_Events_s),'HighEnergieElectron':(self.Event_HighE_Electron_s)}           
+        self.Class_EventSaved={'Muon':(self.Event_Muon_s),'Electron':(self.Event_Electron_s),'Disintegration':(self.Event_Muon_decay_s),'AllEvents':(self.All_Events_s),'HighEnergyElectron':(self.Event_HighE_Electron_s)}           
         log.info("Buffers saved cleared size {}".format(lenght)) 
         self.Event_id_Saved=RingBuffer2D(lenght,
                                     cols=1,dtype=int)

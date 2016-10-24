@@ -34,7 +34,7 @@ class View3D:
         self.box_barette=self.draw_box(0,0,0)
         self.box_signal=self.draw_box(0,0,0)
         self.barette=[gl.GLMeshItem(meshdata=self.box_barette,smooth=True, color=(0.1,0.5,0.5,0.05), shader='balloon', glOptions='additive')]*500
-        self.rectangle=[gl.GLMeshItem(meshdata=self.box_signal, smooth=True, color=(0.5, 0.2, 0.1, 0.3), shader='shaded', glOptions='additive')]*100#gl.GLMeshItem(meshdata=self.sph, smooth=True, color=(0.5, 0.2, 0.1, 0.3), shader='balloon', glOptions='additive')
+        self.rectangle=[gl.GLMeshItem(meshdata=self.box_signal, smooth=True, color=(0.5, 0.2, 0.1, 0.3), shader='shaded', glOptions='additive')]*acq_proc.num_sensors_enabled#gl.GLMeshItem(meshdata=self.sph, smooth=True, color=(0.5, 0.2, 0.1, 0.3), shader='balloon', glOptions='additive')
         
         self.timer_camera(0.2)
 

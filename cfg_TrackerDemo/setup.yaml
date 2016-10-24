@@ -21,7 +21,7 @@ Gains:
     AllGainVal: 10.5
     GainFilePath: setup_examples/gain_csv.csv
 
-# set a Threshold values (in MIP (?))
+# set a Threshold values (in MIP)
 Threshold: 0.6
 
 # PE to MIP (convertion factor from photoelectron to MIP)
@@ -30,19 +30,30 @@ PetoMip: 7
 
 #Sort out Parameters 
 
-Muon:
-    EnergieDeposite:
-    DetectionPointNumber:
-    PointPerPlane:
-   
-
-Electron:
-    EnergieLimitePerPlane:
-    PlaneNumber:
-
-MuonDecay:
-
-ElectronE>>:
+# Energy deposit in MIP
+ClassificationParameters:
+    Muon:
+        TotalEnergyDepositMax: 30
+        EnergyDepositPerPlane: 10
+        NumberOfDetectionPoints: 7
+        MaximumNumberOfHitsPerPlane: 2
+        MaxChi2: 5
+    Electron:
+        TotalEnergyDepositMin: 30
+        NumberOfHitsPerPlaneMax: 10
+    Disintegration:
+        Before: # for the layers before the disintegration
+            NumberOfLayersMin: 3
+            NumberOfHitsPerPlaneMax: 2
+            EnergyDepositPerPlaneMax: 10
+        After:
+            NumberOfLayersMin: 3
+            NumberOfHitsPerPlaneMin: 2
+            EnergyDepositPerPlaneMin: 20
+    HighEnergyElectron:
+        TotalEnergyDepositMin: 300
+        NumberOfHitsPerPlaneMin: 10
+        EnergyDepositPerPlaneMin: 10
 
 
 

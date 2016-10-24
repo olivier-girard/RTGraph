@@ -37,7 +37,7 @@ def linear_point_colour( intensity, **options ) :
     
     colours=[]
     for j,ii in enumerate(intensity):
-        col = QtGui.QColor();
+        col = QtGui.QColor()
         col.setHsv(((maxi-mini)*ii + mini),255,255);
         colours.append(col)
         #print(ii, ((maxi-mini)*ii + mini), col)

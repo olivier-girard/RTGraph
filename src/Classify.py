@@ -38,13 +38,15 @@ class Classify(object):
         self.sensors_path=sensorpath
         self.setup_path=setuppath
         self.key="live"
-        self.event=[[],[],[],[],[]]     #[eventAll,eventMuon,eventElectron,eventMuonDecay,eventHighEnergieElectron]
+        self.event=[[],[],[],[],[]]     #[eventAll,eventMuon,eventElectron,eventDisintegration,eventHighEnergyElectron]
         self.energie=[[],[],[],[],[]]   
+        #self.fit_results = []
         self.securite_random=0
+        self.classification_para = {}
         self.configure()
         self.i=0
         self.last_event_type = ""
-        self.fit_results = dict.fromkeys(['reg_y','reg_z','theta','chi2'])
+        self.fit_results = empty_dict = dict.fromkeys(['reg_y','reg_z','m','theta','chi2'])
 
     def configure(self):
         data = np.genfromtxt(self.sensors_path, dtype=np.float)
@@ -82,41 +84,100 @@ class Classify(object):
                 Mip_per_Stage=0
         return Nbr_Signal_per_Stage, Nbr_Mip_per_Stage
     
-    def isMuon(self, data):
+    def isMuon(self, data, Nsig_per_plane, mip_per_plane):
         # Muons - we want:
         # 1) small energy deposit: typically below 30 MIPs in total and below 10 MIPs per layer
         # 2) at least a certain number of layers detecting: let's say 5
         # 3) no more than two hits per stage
         # 4) a fit chi^2 small <-- so we need to perform a fit before classifying
         
-        signal_per_stage,mip_per_stage=self.signal_per_stage(data)
-        energy_tot=sum(mip_per_stage)  # total energy deposit
-        small_Edeposit_per_stage = all(E <= self.muon_energy_deposit_per_plane for E in mip_per_stage)
-        Nlayer_with_signal = sum(sig > 0 for sig in signal_per_stage)
-        max_Nhits_per_layer = max(signal_per_stage)
+        energy_tot=sum(mip_per_plane)  # total energy deposit
+        small_Edeposit_per_stage = all(E <= self.classification_para['Muon']['EnergyDepositPerPlane'] for E in mip_per_plane)
+        Nlayer_with_signal = sum(sig > 0 for sig in Nsig_per_plane)
+        max_Nhits_per_layer = max(Nsig_per_plane)
         
-        if energy_tot<=self.muon_tot_energy_deposit and small_Edeposit_per_stage and Nlayer_with_signal>=self.muon_detect_point and max_Nhits_per_layer<=self.muon_number_hits_per_plane:
+        if energy_tot<=self.classification_para['Muon']['TotalEnergyDepositMax'] and small_Edeposit_per_stage and Nlayer_with_signal>=self.classification_para['Muon']['NumberOfDetectionPoints'] and max_Nhits_per_layer<=self.classification_para['Muon']['MaximumNumberOfHitsPerPlane']:
             # this might be a muon
             # check chi2
             # for simple events (1 hit per layer), just ust least square:
             chi2 = 0
             if max_Nhits_per_layer==1:
-                reg_y, reg_z, theta, chi2 = self.fit_event(data,least_squares)
+                reg_y, reg_z, m, theta, chi2 = self.fit_event(data,least_squares)
             # for more comlicated events:
-            if max_Nhits_per_layer>1 or chi2>self.muon_chi2:
-                #reg_y, reg_z, theta, chi2 = self.fit_event(data,iterative_least_squares)
-                reg_y, reg_z, theta, chi2 = self.fit_event(data,least_squares,True)
-            #reg_y, reg_z, theta, chi2 = self.fit_event(data,iterative_least_squares)
-            if chi2 <= self.muon_chi2:
-                self.fit_results['reg_y'] = reg_y
+            if max_Nhits_per_layer>1 or chi2>self.classification_para['Muon']['MaxChi2']:
+                #reg_y, reg_z, m, theta, chi2 = self.fit_event(data,iterative_least_squares)
+                reg_y, reg_z, m, theta, chi2 = self.fit_event(data,least_squares,True)
+            #reg_y, reg_z, m, theta, chi2 = self.fit_event(data,iterative_least_squares)
+            if chi2 <= self.classification_para['Muon']['MaxChi2']:
+                fit_results = {'reg_y':reg_y, 'reg_z':reg_z, 'm':m, 'theta':theta, 'chi2':chi2}
+                self.cmd['MuonFitPara'].append(fit_results)
+                self.cmd['AllEventsMuonFitPara'].append(fit_results)
+                """self.fit_results['reg_y'] = reg_y
                 self.fit_results['reg_z'] = reg_z
+                self.fit_results['m'] = m
                 self.fit_results['theta'] = theta
-                self.fit_results['chi2']  = chi2
-                self.last_event_type = "muon"
+                self.fit_results['chi2']  = chi2"""
+                #self.fit_results.append(fit_results)
+                self.last_event_type = "Muon"
                 return True
         return False
         
+    def isElectron(self, Nsig_per_plane, mip_per_plane):
+        # Electrons - we want:
+        # 1) Large energy deposit > 30 MIPs typically
+        # 2) not too many hits per plane (otherwise it's a large energy deposit event (HighElectronEnergy)
         
+        energy_tot=sum(mip_per_plane)  # total energy deposit
+        
+        if (energy_tot>=self.classification_para['Electron']['TotalEnergyDepositMin'] and 
+                    max(Nsig_per_plane)<=self.classification_para['Electron']['NumberOfHitsPerPlaneMax']):
+            self.last_event_type = "Electron"
+            return True
+        else:
+            return False
+    
+    def isDisintegration(self, Nsig_per_plane, mip_per_plane):
+        # For a disintegration occuring inside the detector, we want:
+        # 1) small energy deposit in the first layers
+        # 2) large energy in the next layers
+        # 3) many hits in these next layers
+        
+        layers_before = []
+        layers_after = []
+        for (nsig,mip) in zip(Nsig_per_plane,mip_per_plane):
+            if nsig>0:
+                if (nsig<=self.classification_para['Disintegration']['Before']['NumberOfHitsPerPlaneMax'] and 
+                            mip<=self.classification_para['Disintegration']['Before']['EnergyDepositPerPlaneMax']):
+                    # this layer is before the disintegration
+                    layers_before.append((nsig,mip))
+                elif (nsig>=self.classification_para['Disintegration']['After']['NumberOfHitsPerPlaneMin'] and 
+                            mip>=self.classification_para['Disintegration']['After']['EnergyDepositPerPlaneMin']):
+                    # this layer is after the disintegration
+                    layers_after.append((nsig,mip))
+        if (len(layers_before)>=self.classification_para['Disintegration']['Before']['NumberOfLayersMin'] and 
+                    len(layers_after)>=self.classification_para['Disintegration']['After']['NumberOfLayersMin']):
+            self.last_event_type = "Disintegration"
+            return True
+        else:
+            return False
+            
+    def isHighE(self, Nsig_per_plane, mip_per_plane):
+        # For a large energy deposit event, we want:
+        # 1) Large total energy deposit
+        # 2) Large energy deposit in each layer
+        # 3) Large number of hits
+        
+        energy_tot=sum(mip_per_plane)  # total energy deposit
+        if energy_tot>=self.classification_para['HighEnergyElectron']['TotalEnergyDepositMin']:
+            for (nsig,mip) in zip(Nsig_per_plane,mip_per_plane):
+                if not (nsig>=self.classification_para['HighEnergyElectron']['NumberOfHitsPerPlaneMin'] and 
+                            mip>=self.classification_para['HighEnergyElectron']['EnergyDepositPerPlaneMin']):
+                    return False
+        else:
+            return False
+            
+        self.last_event_type = "HighEnergyElectron"
+        return True
     
     def classify_event(self,data,event):
         ts = time.time()
@@ -131,56 +192,54 @@ class Classify(object):
             self.event[0].append(event[0])
             self.energie[0].append(self.energie_deposite(data))
             
-            if self.isMuon(data):
+            if self.isElectron(Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
+                self.cmd['Electron'].append(data)
+                self.event[2].append(event[0])
+                self.energie[2].append(self.energie_deposite(data))
+                self.cmd['AllEventsType'].append("Electron")
+                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                self.cmd['AllEventsMuonFitPara'].append(fit_results)
+            
+            elif self.isDisintegration(Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
+                self.cmd['Disintegration'].append(data)
+                self.event[3].append(event[0])
+                self.energie[3].append(self.energie_deposite(data))
+                self.cmd['AllEventsType'].append("Disintegration")
+                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                self.cmd['AllEventsMuonFitPara'].append(fit_results)
+                
+            elif self.isHighE(Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
+                self.cmd['HighEnergyElectron'].append(data)
+                self.event[4].append(event[0])
+                self.energie[4].append(self.energie_deposite(data))
+                self.cmd['AllEventsType'].append("HighEnergyElectron")
+                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                self.cmd['AllEventsMuonFitPara'].append(fit_results)
+                
+            elif self.isMuon(data,Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
                 self.cmd['Muon'].append(data)
                 self.event[1].append(event[0])
                 self.energie[1].append(self.energie_deposite(data))
-            else:
-                self.last_event_type = "None"
-            
-            for j, i in enumerate(Nbr_Signal_per_Stage):
-                if(i==1 and Nbr_Mip_per_Stage[j]<35/self.acq_proc.PetoMip):
-                    counter.append(1)
-                    if(sum(counter)==3 and j==2):
-                        for j,i in enumerate(Nbr_Signal_per_Stage[3:]):
-                            if(i==1 and self.energie_deposite(data)<140/self.acq_proc.PetoMip):   ####  Muon
-                                counter.append(1)
-                                if(sum(counter)>=len(Nbr_Signal_per_Stage)-2 and j==len(Nbr_Signal_per_Stage)-4):
-                                    pass
-                                    """self.cmd['Muon'].append(data)
-                                    self.event[1].append(event[0])
-                                    self.energie[1].append(self.energie_deposite(data))"""
-                            if(i==0):counter.append(0)
-                            if(i>1 and Nbr_Mip_per_Stage[j]>20/self.acq_proc.PetoMip):    ####  Electron
-                                self.cmd['Electron'].append(data)
-                                self.event[2].append(event[0])
-                                self.energie[2].append(self.energie_deposite(data))
-                            if(i>2 and self.energie_deposite(data)>140/self.acq_proc.PetoMip ):
-                                self.cmd['MuonDecay'].append(data)
-                                self.event[3].append(event[0])
-                                self.energie[3].append(self.energie_deposite(data))
-                else:counter.append(0)
-            if(self.energie_deposite(data)>1100/self.acq_proc.PetoMip):
-                self.cmd['HighEnergieElectron'].append(data)
-                self.event[4].append(event[0])
-                self.energie[4].append(self.energie_deposite(data))
-        te = time.time()
-        #print("{}",format(te-ts))
+                self.cmd['AllEventsType'].append("Muon")
+                
+            else: # all other event that are not classified
+                self.last_event_type = "NotClassified"
+                self.cmd['AllEventsType'].append("NotClassified")
+                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                self.cmd['AllEventsMuonFitPara'].append(fit_results)
+                
         return self.cmd
         
                                     
     def parameters(self):
         with open(self.setup_path,'r') as f:
             cfg=yaml.load(f)
-        self.muon_tot_energy_deposit = cfg['Muon']['TotalEnergyDeposit']
-        self.muon_energy_deposit_per_plane = cfg['Muon']['EnergyDepositPerPlane']
-        self.muon_detect_point = cfg['Muon']['NumberOfDetectionPoints']
-        self.muon_number_hits_per_plane = cfg['Muon']['MaximumNumberOfHitsPerPlane']
-        self.muon_chi2= cfg['Muon']['MaxChi2']
+        
+        self.classification_para = dict(cfg['ClassificationParameters'])
+        
         log.info("Classification parameters loaded from file: {}".format(self.setup_path))
         #self.elecron_energie_per_plane=cfg['Electron']['EnergieLimitePerPlane']
         #self.elecron_nb_etage=cfg['Electron']['PlaneNumber']
-        
         
     def energie_deposite(self,data):   
         # renvoie l'energie totale de la trace
@@ -275,32 +334,53 @@ class Classify(object):
         #m, z0, chi2 = least_squares(y,z)
         #m, z0, chi2 = iterative_least_squares(y,z)
         if PatRec:
-            y,z = reject_hits_pattern_recognition2(y,z,self.x_para,self.y_para,2.5)
-        m, z0, chi2 = fittype(y,z)
+            yout,zout = reject_hits_pattern_recognition2(y,z,self.x_para,self.y_para,2.5)
+            if len(yout)>2 and len(zout)>2:
+                m, z0, chi2 = fittype(yout,zout)
+            else:
+                return [0], [0], 0, 0, 1000
+        else:
+            m, z0, chi2 = fittype(y,z)
         
         # pattern recognition:
         #reject_hits_pattern_recognition(y,z,self.x_para,self.y_para,1)
         #reject_hits_pattern_recognition2(y,z,self.x_para,self.y_para,2)
         
-        reg_y, reg_z = y, []
+        xmin = self.x_para["min"] - 0.5*self.x_para["pitch"]
+        xmax = self.x_para["max"] + 0.5*self.x_para["pitch"]
+        ymin = self.y_para["min"] - 0.5*self.y_para["pitch"]
+        ymax = self.y_para["max"] + 0.5*self.y_para["pitch"]
         
+        reg_y, reg_z = [], []
         if(m is None) : ## straight vertical tracks
             theta = 0
-            reg_z = np.arange(1,len(y)+1)
+            reg_y = [ z0,z0 ]
+            reg_z = [ ymin,ymax ]
         elif(m == 0):
             theta = 90
-            reg_z = z[0]*len(y)
+            reg_y = [ xmin,xmax ]
+            reg_z = [ z0,z0 ]
         else :
-            reg_y = []
-            theta  = (math.atan(-1./m)*180.)/math.pi
-            for zi in z :
-                yr = (zi - z0)/m
-                if 0 < yr < 33 : 
-                    reg_y.append( yr )
-                    reg_z.append( zi )
-            #if(plot==True):print (m, z0, theta)
+            theta  = (180/math.pi)*math.atan(-1./m)
+            y_intersect_xmin = m*xmin + z0
+            y_intersect_xmax = m*xmax + z0
+            x_intersect_ymin = (ymin-z0)/m
+            x_intersect_ymax = (ymax-z0)/m
+            if xmin <= x_intersect_ymin <= xmax:
+                reg_y.append(x_intersect_ymin)
+                reg_z.append(ymin)
+            if xmin <= x_intersect_ymax <= xmax:
+                reg_y.append(x_intersect_ymax)
+                reg_z.append(ymax)
+            if ymin < y_intersect_xmin < ymax:
+                reg_y.append(xmin)
+                reg_z.append(y_intersect_xmin)
+            if ymin < y_intersect_xmax < ymax:
+                reg_y.append(xmax)
+                reg_z.append(y_intersect_xmax)
+                
         print("m=",m,"   theta=",theta,"   chi2=",chi2)
-        return reg_y, reg_z, theta, chi2
+        return reg_y, reg_z, m, theta, chi2
         
 ############################### non utilisé ###########################    
     def angle(self,data):                                                                                                                                                                                   

@@ -146,7 +146,7 @@ def correlation(points) :
 # Reject points based on the correlation of all points
 def reject_hits(x_array,y_array):
     # First we remove points far away
-    print("mean=",sum(x_array)/len(x_array))
+    #print("mean=",sum(x_array)/len(x_array))
     
     allpts = list(zip(x_array, y_array))
     for i,(xi,yi) in enumerate(allpts):
@@ -254,6 +254,9 @@ def least_squares( x, y ) :
 
     if len(x) != len(y) :  
         print("ATTENTION: x and y have different lenghts, no fit performed")
+        return
+    
+    if len(x) == 0 :
         return
         
     N = len(y)

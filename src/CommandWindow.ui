@@ -321,6 +321,35 @@ QPushButton:pressed {
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_2">
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_20">
+      <property name="maximumSize">
+       <size>
+        <width>200</width>
+        <height>20</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>URW Bookman L</family>
+        <pointsize>14</pointsize>
+        <weight>75</weight>
+        <italic>true</italic>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>ERROR MESSAGE</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_21">
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QFrame" name="frame">
       <property name="minimumSize">
@@ -345,18 +374,126 @@ QPushButton:pressed {
        </font>
       </property>
       <layout class="QGridLayout" name="gridLayout_25">
+       <item row="8" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QPushButton" name="integration_bt">
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Integration mode</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="automatic_bt">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>50</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>1280</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="baseSize">
+            <size>
+             <width>300</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Automatic mode</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
        <item row="0" column="0">
         <layout class="QGridLayout" name="gridLayout_24">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout">
-           <item row="11" column="1" colspan="6">
+           <item row="11" column="2" colspan="6">
             <widget class="QLineEdit" name="lineEdit_SensorPos">
              <property name="text">
               <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/geometry_full_tracker_approx.csv</string>
              </property>
             </widget>
            </item>
-           <item row="4" column="0">
+           <item row="3" column="2">
+            <layout class="QHBoxLayout" name="horizontalLayout">
+             <item>
+              <widget class="QLabel" name="label_14">
+               <property name="minimumSize">
+                <size>
+                 <width>170</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>12</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Acquisition buffer :</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_Acq">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="value">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="4" column="1">
             <widget class="QPushButton" name="rotation">
              <property name="font">
               <font>
@@ -376,7 +513,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="9" column="0">
+           <item row="9" column="1">
             <widget class="QLabel" name="label_5">
              <property name="font">
               <font>
@@ -392,7 +529,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
+           <item row="4" column="2">
             <layout class="QGridLayout" name="gridLayout_5">
              <item row="1" column="2">
               <widget class="QLCDNumber" name="CurrentEven">
@@ -427,7 +564,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="2" column="6">
+           <item row="2" column="7">
             <widget class="QPushButton" name="btnSavedPause">
              <property name="minimumSize">
               <size>
@@ -458,7 +595,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="2" column="7">
+           <item row="2" column="8">
             <widget class="QPushButton" name="btnSavedLeft">
              <property name="minimumSize">
               <size>
@@ -489,7 +626,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="5" column="1">
             <layout class="QGridLayout" name="gridLayout_8">
              <item row="0" column="0">
               <widget class="QLabel" name="label_7">
@@ -548,7 +685,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Muon Decay</string>
+                <string>Disintegration</string>
                </property>
               </widget>
              </item>
@@ -570,7 +707,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Electron E&gt;&gt;</string>
+                <string>Large energy deposit</string>
                </property>
               </widget>
              </item>
@@ -596,7 +733,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="2" column="8">
+           <item row="2" column="9">
             <widget class="QPushButton" name="btnSavedRight">
              <property name="minimumSize">
               <size>
@@ -627,7 +764,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="2" column="5">
+           <item row="2" column="6">
             <widget class="QPushButton" name="btnSavedStart">
              <property name="minimumSize">
               <size>
@@ -658,7 +795,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="0" column="1" rowspan="2">
+           <item row="0" column="2" rowspan="2">
             <widget class="QPushButton" name="pushButton_LIVE">
              <property name="minimumSize">
               <size>
@@ -1458,7 +1595,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="2" column="3">
+           <item row="2" column="4">
             <widget class="QLabel" name="label_2">
              <property name="minimumSize">
               <size>
@@ -1491,7 +1628,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="4" column="4" colspan="5">
+           <item row="4" column="5" colspan="5">
             <layout class="QGridLayout" name="gridLayout_6">
              <item row="0" column="0">
               <widget class="QLabel" name="label_19">
@@ -1519,7 +1656,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="8" column="0" colspan="9">
+           <item row="8" column="1" colspan="9">
             <widget class="Line" name="line_2">
              <property name="minimumSize">
               <size>
@@ -1535,7 +1672,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="11" column="7" colspan="2">
+           <item row="11" column="8" colspan="2">
             <widget class="QPushButton" name="sensorLoadbtn">
              <property name="font">
               <font>
@@ -1555,65 +1692,23 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
-              <widget class="QLabel" name="label_14">
-               <property name="minimumSize">
-                <size>
-                 <width>170</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>12</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Acquisition buffer :</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="spinBox_Acq">
-               <property name="minimumSize">
-                <size>
-                 <width>100</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="minimum">
-                <number>1</number>
-               </property>
-               <property name="maximum">
-                <number>10000</number>
-               </property>
-               <property name="value">
-                <number>100</number>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="0" rowspan="4">
+           <item row="0" column="1" rowspan="4">
             <widget class="QLabel" name="label_logo">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>120000</height>
+              </size>
+             </property>
              <property name="text">
               <string/>
              </property>
             </widget>
            </item>
-           <item row="9" column="7" colspan="2">
+           <item row="9" column="8" colspan="2">
             <widget class="QPushButton" name="setupLoadbtn">
              <property name="font">
               <font>
@@ -1633,7 +1728,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="5" column="4" colspan="5">
+           <item row="5" column="5" colspan="5">
             <layout class="QGridLayout" name="gridLayout_4">
              <item row="0" column="1">
               <widget class="QRadioButton" name="radioButton_electron_sd">
@@ -1695,7 +1790,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QRadioButton" name="radioButton_muondecay_sd">
+              <widget class="QRadioButton" name="radioButton_disintegration_sd">
                <property name="text">
                 <string/>
                </property>
@@ -1708,7 +1803,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item row="2" column="2">
-              <widget class="QLCDNumber" name="muondecay_Ind_sd"/>
+              <widget class="QLCDNumber" name="disintegration_Ind_sd"/>
              </item>
              <item row="1" column="2">
               <widget class="QLCDNumber" name="muon_Ind_sd"/>
@@ -1734,7 +1829,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="2" column="4">
+           <item row="2" column="5">
             <widget class="QSpinBox" name="spinBox_Event">
              <property name="font">
               <font>
@@ -1753,14 +1848,14 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="9" column="1" colspan="6">
+           <item row="9" column="2" colspan="6">
             <widget class="QLineEdit" name="lineEdit_SetupFile">
              <property name="text">
               <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/setup.yaml</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="2" column="2">
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="0" column="1">
               <widget class="QPushButton" name="btnLivePause">
@@ -1919,7 +2014,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="0" column="3" rowspan="2" colspan="7">
+           <item row="0" column="4" rowspan="2" colspan="7">
             <widget class="QPushButton" name="pushButton_SavedData">
              <property name="minimumSize">
               <size>
@@ -1944,7 +2039,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="5" column="1">
+           <item row="5" column="2">
             <layout class="QGridLayout" name="gridLayout_3">
              <item row="3" column="0">
               <widget class="QRadioButton" name="radioButton_highelectron">
@@ -1992,7 +2087,7 @@ QPushButton:pressed {
               <widget class="QLCDNumber" name="ALL_Ind"/>
              </item>
              <item row="2" column="0">
-              <widget class="QRadioButton" name="radioButton_muondecay">
+              <widget class="QRadioButton" name="radioButton_disintegration">
                <property name="text">
                 <string/>
                </property>
@@ -2005,7 +2100,7 @@ QPushButton:pressed {
               </widget>
              </item>
              <item row="2" column="2">
-              <widget class="QLCDNumber" name="muondecay_Ind"/>
+              <widget class="QLCDNumber" name="disintegration_Ind"/>
              </item>
              <item row="0" column="2">
               <widget class="QLCDNumber" name="electron_Ind">
@@ -2059,7 +2154,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="11" column="0">
+           <item row="11" column="1">
             <widget class="QLabel" name="label_4">
              <property name="font">
               <font>
@@ -2074,7 +2169,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="5" column="3">
+           <item row="5" column="4">
             <layout class="QGridLayout" name="gridLayout_9">
              <item row="1" column="0">
               <widget class="QLabel" name="label_15">
@@ -2118,7 +2213,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Electron E&gt;&gt;</string>
+                <string>Large energy deposit</string>
                </property>
               </widget>
              </item>
@@ -2158,7 +2253,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Muon Decay</string>
+                <string>Disintegration</string>
                </property>
               </widget>
              </item>
@@ -2185,7 +2280,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="6" column="4" colspan="4">
+           <item row="6" column="5" colspan="4">
             <widget class="QLineEdit" name="lineEdit_DataPath">
              <property name="palette">
               <palette>
@@ -2526,7 +2621,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="6" column="8">
+           <item row="6" column="9">
             <widget class="QPushButton" name="DataLoadbtn">
              <property name="font">
               <font>
@@ -2546,7 +2641,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="6" column="1">
+           <item row="6" column="2">
             <layout class="QGridLayout" name="gridLayout_11">
              <item row="0" column="0">
               <widget class="QLineEdit" name="lineEdit_SaveAs">
@@ -2644,7 +2739,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="6" column="3">
+           <item row="6" column="4">
             <widget class="QLabel" name="label_3">
              <property name="maximumSize">
               <size>
@@ -2666,7 +2761,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
+           <item row="6" column="1">
             <layout class="QGridLayout" name="gridLayout_10">
              <item row="1" column="0">
               <widget class="QLabel" name="label_12">
@@ -2732,7 +2827,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="0" column="2" rowspan="7">
+           <item row="0" column="3" rowspan="7">
             <widget class="Line" name="line">
              <property name="minimumSize">
               <size>
@@ -2749,7 +2844,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
              </property>
             </widget>
            </item>
-           <item row="4" column="3">
+           <item row="4" column="4">
             <widget class="QPushButton" name="rotation_saved">
              <property name="font">
               <font>
@@ -2773,7 +2868,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
          </item>
         </layout>
        </item>
-       <item row="1" column="0">
+       <item row="11" column="0">
         <widget class="QPushButton" name="poster">
          <property name="font">
           <font>
@@ -2790,35 +2885,6 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
         </widget>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_20">
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>URW Bookman L</family>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>ERROR MESSAGE</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_21">
-      <property name="text">
-       <string/>
-      </property>
      </widget>
     </item>
    </layout>

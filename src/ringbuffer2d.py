@@ -26,7 +26,7 @@ class RingBuffer2D(object):
         self.filled_rows = 0
         self.curr_pos = 0
         self.free_pos = 0
-
+        
     def append(self, value,ev_num=0,time=0,key=0):
         """
         append a 1D element (row)
