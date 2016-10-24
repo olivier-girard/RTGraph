@@ -55,11 +55,7 @@ class AutoWindow(QtGui.QMainWindow):
         self.module=[pg.GraphItem()]*400
         
         self.curdisplay = self.ui.autoplot.addPlot(title ="")
-        self.curdisplay.addItem(self.Hist)
-        self.curitems = [self.Hist]
-        
-        self.timer = QtCore.QTimer(self)
-        self.timer.timeout.connect(self.change_display)
+        #self.curdisplay.addItem(self.Hist)
         
         self.curstep = 0
         self.steps = [ 
@@ -67,25 +63,22 @@ class AutoWindow(QtGui.QMainWindow):
                         [self.Hist],
                         [self.FreqHist]
                         ]
+        self.curdisplay.addItem(self.steps[0][0])
+        #self.curdisplay.addItem(self.steps[0][0])
         
-        """while True :
-            print ("Looping 5 seconds step")
-            time.sleep(5)
-            self.change_display()"""
+        self.timer=QtCore.QTimer(self)
+        self.timer.timeout.connect(self.change_display)
+        self.timer.start(2000)
         
     def set_data(self,hist,freq,scatt,line) :
-    
-        #self.Hist.setData(hist)                            
-        #self.FreqHist.setData(freq)
-        #self.scatt.setData(scatt)
-        #self.droite.setData(line)
         self.Hist     = hist
         self.FreqHist = freq
         self.scatt    = scatt
         self.droite   = line
 
     def change_display(self) :
-    
+        
+        print("Inside change_display(self)")
         prevstep = self.curstep
         if self.curstep < (len(self.steps)-1) :
             self.curstep += 1
@@ -95,6 +88,7 @@ class AutoWindow(QtGui.QMainWindow):
         for it in self.steps[prevstep] :
             self.curdisplay.removeItem(it)
         for it in self.steps[self.curstep] :
+            print ("Adding element")
             self.curdisplay.addItem(it)
 
 class LiveWindow(QtGui.QMainWindow):
@@ -148,7 +142,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         self.Auto=AutoWindow() 
         self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
-        #self.Auto.show()
+        self.Auto.show()
 
 
         # CONFIGURATION
