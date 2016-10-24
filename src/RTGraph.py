@@ -38,46 +38,75 @@ from configurePlots import pt_size, pt_colour
 # les donnees arrivent dans le programme, sont traitees (retrait du bruit et conversion en p.e ou MIP)
 # Elles sont ensuite classée avec l'object Classify qui renvoie un dictionnaire 
 # le dictionnaire live s'enregistre dans un fichier tout les ... voir taille du buffer self.acq_proc.num_integrations
-"""
+
 class AutoWindow(QtGui.QMainWindow):
     
     def __init__(self):
+    
         QtGui.QMainWindow.__init__(self)                          #     objet fenetre live
         self.ui = Ui_MainWindow()                                 #
         #self.ui.setupUi(self)
+        
         self.img = pg.ImageItem()                                           # image channel
         self.Hist=pg.PlotCurveItem()                                        # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
+        
         self.curdisplay = self.ui.autoplot.addPlot(title ="")
         self.curdisplay.addItem(self.Hist)
-        self.curitem = self.Hist
+        self.curitems = [self.Hist]
         
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.change_display)
         
-    def set_data(self,) :
-        pass
+        self.curstep = 0
+        self.steps = [ 
+        				[self.scatt,self.droite],
+        				[self.Hist],
+        				[self.FreqHist]
+        				]
+        
+        while True :
+        	print ("Looping 5 seconds step")
+            time.sleep(5)
+            self.change_display()
+        
+    def set_data(self,hist,freq,scatt,line) :
+    
+        #self.Hist.setData(hist)                            
+        #self.FreqHist.setData(freq)				                  
+        #self.scatt.setData(scatt)					  
+        #self.droite.setData(line)
+		self.Hist     = hist
+		self.FreqHist = freq
+		self.scatt    = scatt
+		self.droite   = line
 
     def change_display(self) :
-        self.curdisplay.removeItem(self.curitem)
-        self.curdisplay.addItem()
-"""
+    
+        prevstep = self.curstep
+        if self.curstep < (len(self.steps)-1) :
+        	self.curstep += 1
+        else :
+        	self.curstep = 0
+        	 
+        for it in self.steps[prevstep] :
+        	self.curdisplay.removeItem(it)
+        for it in self.steps[self.curstep] :
+        	self.curdisplay.addItem(it)
+
 class LiveWindow(QtGui.QMainWindow):
     
     integrate_on = False
     
     def __init__(self, acq_proc):
-        QtGui.QMainWindow.__init__(self)                          #     objet fenetre live
-        self.ui = Ui_MainWindow()                                 #
+        QtGui.QMainWindow.__init__(self)      #     objet fenetre live
+        self.ui = Ui_MainWindow()    
         self.ui.setupUi(self)  
-                                           #
-        #self.Auto=AutoWindow() 
         
-        #self.tab = self.ui.display
-        #self.jobs = []
+        self.Auto=AutoWindow() 
         
         # Know about an instance of acquisition/processing code
         # to forward GUI events
@@ -118,6 +147,9 @@ class LiveWindow(QtGui.QMainWindow):
         self.configure_plot()
         self.slope_conversion_factor = 1    # conversion of slope in 2D plot and in reality
         #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
+        
+        self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
+        self.Auto.show()
 
 
         # CONFIGURATION
@@ -207,7 +239,6 @@ class LiveWindow(QtGui.QMainWindow):
         if self.integrate_on:
             intensity = self.integrate(intensity)
             mini_size = 0.01
-            #print (intensity,"\n\n\n\n\n\n")
         
         # channel histogram
         self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
@@ -233,7 +264,6 @@ class LiveWindow(QtGui.QMainWindow):
         # checks if autorange is on: if yes, disable it
         if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
             self.setRange2Dplot()
-        
         
         ###### 3D #######
         if not self.integrate_on:
@@ -266,6 +296,8 @@ class LiveWindow(QtGui.QMainWindow):
                 writerdata.writerows(self.mip_calibration)
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
+        
+        self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
         
         #input("Waiting that you click")
     
