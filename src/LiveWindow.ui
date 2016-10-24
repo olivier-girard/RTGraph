@@ -438,7 +438,7 @@ color:rgb(0, 0, 0);
       </property>
       <widget class="QWidget" name="tracker">
        <attribute name="title">
-        <string>2D trace</string>
+        <string>2D track</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
@@ -459,7 +459,7 @@ color:rgb(0, 0, 0);
       </widget>
       <widget class="QWidget" name="threed">
        <attribute name="title">
-        <string>3D trace</string>
+        <string>3D track</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
@@ -469,7 +469,7 @@ color:rgb(0, 0, 0);
       </widget>
       <widget class="QWidget" name="histogram">
        <attribute name="title">
-        <string>Histogram</string>
+        <string>Angle</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_8">
         <item row="0" column="0">

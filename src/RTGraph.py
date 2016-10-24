@@ -380,8 +380,10 @@ class LiveWindow(QtGui.QMainWindow):
                 slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
                 if slope!=None:
                     self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
+                    print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
                 else:
                     self.theta.append(0)
+                    print("m=",slope,"theta=",0)
                 if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
             
             self.FreqHist.setData(
@@ -621,6 +623,16 @@ class CommandWindow(QtGui.QMainWindow):
         # Format is: x,y,sensor_num
         #print(data)
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
+        # conversion factor between slope and angle in 2D plot and in reality (=true geometry)
+        # here a simple implementation enough for now
+        x = np.unique(data[:,5])
+        xprime = np.unique(data[:,2])
+        xconv = (xprime[-1]-xprime[0])/(x[-1]-x[0])
+        y = np.unique(data[:,4])
+        yprime = np.unique(data[:,3])
+        yconv = (yprime[-1]-yprime[0])/(y[-1]-y[0])
+        self.main.slope_conversion_factor = yconv/xconv
+        log.info("Slope conversion factor between 2D plot and reality is: {}".format(self.main.slope_conversion_factor))
         
     def get_value_USB_board(self):
         self.USBboard_Nevents=self.ui.spinBox_USB_board.value()
@@ -641,15 +653,6 @@ class CommandWindow(QtGui.QMainWindow):
         self.main.view3d.module([0.8,10,1/4])
         self.Display.view3d.module([0.8,10,1/4])
         self.configure_dico()
-        # conversion factor between slope and angle in 2D plot and in reality (=true geometry)
-        # here a simple implementation enough for now
-        x = np.unique(data[:,5])
-        xprime = np.unique(data[:,2])
-        xconv = (xprime[-1]-xprime[0])/(x[-1]-x[0])
-        y = np.unique(data[:,4])
-        yprime = np.unique(data[:,3])
-        yconv = (yprime[-1]-yprime[0])/(y[-1]-y[0])
-        self.main.slope_conversion_factor = yconv/xconv
     
     def load_setup_file(self):
         self.stop_daq()
