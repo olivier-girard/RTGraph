@@ -73,12 +73,12 @@ class AutoWindow(QtGui.QMainWindow):
             time.sleep(5)
             self.change_display()
         
+        self.timer=QtCore.QTimer(self)
+        self.timer.timeout.connect(self.change_display)
+        self.timer.start(2000)
+        
     def set_data(self,hist,freq,scatt,line) :
     
-        #self.Hist.setData(hist)                            
-        #self.FreqHist.setData(freq)				                  
-        #self.scatt.setData(scatt)					  
-        #self.droite.setData(line)
 		self.Hist     = hist
 		self.FreqHist = freq
 		self.scatt    = scatt
