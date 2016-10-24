@@ -21,7 +21,7 @@ from LiveWindow import *
 from CommandWindow import *
 from SavedWindow import *
 from PosterWindow import *
-#from AutoWindow import *
+from AutoWindow import *
 
 from acqprocessing import AcqProcessing
 from Classify import Classify
@@ -44,8 +44,8 @@ class AutoWindow(QtGui.QMainWindow):
     def __init__(self):
     
         QtGui.QMainWindow.__init__(self)                          #     objet fenetre live
-        self.ui = Ui_MainWindow()                                 #
-        #self.ui.setupUi(self)
+        self.ui = Ui_AutoWindow()                                 #
+        self.ui.setupUi(self)
         
         self.img = pg.ImageItem()                                           # image channel
         self.Hist=pg.PlotCurveItem()                                        # histogramme 
@@ -63,39 +63,39 @@ class AutoWindow(QtGui.QMainWindow):
         
         self.curstep = 0
         self.steps = [ 
-        				[self.scatt,self.droite],
-        				[self.Hist],
-        				[self.FreqHist]
-        				]
+                        [self.scatt,self.droite],
+                        [self.Hist],
+                        [self.FreqHist]
+                        ]
         
-        while True :
-        	print ("Looping 5 seconds step")
+        """while True :
+            print ("Looping 5 seconds step")
             time.sleep(5)
-            self.change_display()
+            self.change_display()"""
         
     def set_data(self,hist,freq,scatt,line) :
     
         #self.Hist.setData(hist)                            
-        #self.FreqHist.setData(freq)				                  
-        #self.scatt.setData(scatt)					  
+        #self.FreqHist.setData(freq)
+        #self.scatt.setData(scatt)
         #self.droite.setData(line)
-		self.Hist     = hist
-		self.FreqHist = freq
-		self.scatt    = scatt
-		self.droite   = line
+        self.Hist     = hist
+        self.FreqHist = freq
+        self.scatt    = scatt
+        self.droite   = line
 
     def change_display(self) :
     
         prevstep = self.curstep
         if self.curstep < (len(self.steps)-1) :
-        	self.curstep += 1
+            self.curstep += 1
         else :
-        	self.curstep = 0
-        	 
+            self.curstep = 0
+            
         for it in self.steps[prevstep] :
-        	self.curdisplay.removeItem(it)
+            self.curdisplay.removeItem(it)
         for it in self.steps[self.curstep] :
-        	self.curdisplay.addItem(it)
+            self.curdisplay.addItem(it)
 
 class LiveWindow(QtGui.QMainWindow):
     
@@ -105,8 +105,6 @@ class LiveWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)      #     objet fenetre live
         self.ui = Ui_MainWindow()    
         self.ui.setupUi(self)  
-        
-        self.Auto=AutoWindow() 
         
         # Know about an instance of acquisition/processing code
         # to forward GUI events
@@ -148,8 +146,9 @@ class LiveWindow(QtGui.QMainWindow):
         self.slope_conversion_factor = 1    # conversion of slope in 2D plot and in reality
         #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
         
+        self.Auto=AutoWindow() 
         self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
-        self.Auto.show()
+        #self.Auto.show()
 
 
         # CONFIGURATION
@@ -385,7 +384,10 @@ class LiveWindow(QtGui.QMainWindow):
                 else :
                     self.theta.append(0.)"""
                 slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
-                self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
+                if slope!=None:
+                    self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
+                else:
+                    self.theta.append(0)
                 if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
             
             self.FreqHist.setData(
@@ -690,13 +692,13 @@ class CommandWindow(QtGui.QMainWindow):
                                                 +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])
                 self.main.ui.EnergieDep.setText(str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
                                                +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText(self.main.event_type)
+                self.main.ui.EventType.setText(str(self.main.event_type))
             else:
                 self.ui.CurrentEven.display(self.main.event_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
                                                     +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])
                 self.main.ui.EnergieDep.setText(str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
                                                +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText(self.main.event_type)
+                self.main.ui.EventType.setText(str(self.main.event_type))
 
    # def message_error(self):
         

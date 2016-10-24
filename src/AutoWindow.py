@@ -22,12 +22,12 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_MainWindow(object):
-    def setupUi(self, MainWindow):
-        MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(1346, 920)
-        MainWindow.setMinimumSize(QtCore.QSize(0, 0))
-        MainWindow.setStyleSheet(_fromUtf8("\n"
+class Ui_AutoWindow(object):
+    def setupUi(self, AutoWindow):
+        AutoWindow.setObjectName(_fromUtf8("AutoWindow"))
+        AutoWindow.resize(1346, 920)
+        AutoWindow.setMinimumSize(QtCore.QSize(0, 0))
+        AutoWindow.setStyleSheet(_fromUtf8("\n"
 "/*\n"
 "    Android Material Dark\n"
 "    COLOR_DARK     = #212121 Grey 900\n"
@@ -299,8 +299,8 @@ class Ui_MainWindow(object):
 "    border: 1px;\n"
 "    color: #3F51B5;\n"
 "}"))
-        MainWindow.setTabShape(QtGui.QTabWidget.Rounded)
-        self.centralwidget = QtGui.QWidget(MainWindow)
+        AutoWindow.setTabShape(QtGui.QTabWidget.Rounded)
+        self.centralwidget = QtGui.QWidget(AutoWindow)
         self.centralwidget.setAutoFillBackground(False)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.gridLayout = QtGui.QGridLayout(self.centralwidget)
@@ -311,16 +311,16 @@ class Ui_MainWindow(object):
         self.autoplot.setObjectName(_fromUtf8("autoplot"))
         self.gridLayout_2.addWidget(self.autoplot, 0, 0, 1, 1)
         self.gridLayout.addLayout(self.gridLayout_2, 0, 2, 1, 1)
-        MainWindow.setCentralWidget(self.centralwidget)
-        self.actionAll_pannel = QtGui.QAction(MainWindow)
+        AutoWindow.setCentralWidget(self.centralwidget)
+        self.actionAll_pannel = QtGui.QAction(AutoWindow)
         self.actionAll_pannel.setCheckable(False)
         self.actionAll_pannel.setEnabled(True)
         self.actionAll_pannel.setObjectName(_fromUtf8("actionAll_pannel"))
-        self.actionHistogram = QtGui.QAction(MainWindow)
+        self.actionHistogram = QtGui.QAction(AutoWindow)
         self.actionHistogram.setObjectName(_fromUtf8("actionHistogram"))
-        self.actionTracker = QtGui.QAction(MainWindow)
+        self.actionTracker = QtGui.QAction(AutoWindow)
         self.actionTracker.setObjectName(_fromUtf8("actionTracker"))
-        self.actionChannels = QtGui.QAction(MainWindow)
+        self.actionChannels = QtGui.QAction(AutoWindow)
         font = QtGui.QFont()
         font.setFamily(_fromUtf8("URW Bookman L"))
         font.setPointSize(12)
@@ -328,18 +328,18 @@ class Ui_MainWindow(object):
         font.setWeight(75)
         self.actionChannels.setFont(font)
         self.actionChannels.setObjectName(_fromUtf8("actionChannels"))
-        self.actionAll = QtGui.QAction(MainWindow)
+        self.actionAll = QtGui.QAction(AutoWindow)
         self.actionAll.setObjectName(_fromUtf8("actionAll"))
 
-        self.retranslateUi(MainWindow)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        self.retranslateUi(AutoWindow)
+        QtCore.QMetaObject.connectSlotsByName(AutoWindow)
 
-    def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "Live Window", None))
-        self.actionAll_pannel.setText(_translate("MainWindow", "All pannel", None))
-        self.actionHistogram.setText(_translate("MainWindow", "Histogram", None))
-        self.actionTracker.setText(_translate("MainWindow", "Tracker", None))
-        self.actionChannels.setText(_translate("MainWindow", "Channels", None))
-        self.actionAll.setText(_translate("MainWindow", "All", None))
+    def retranslateUi(self, AutoWindow):
+        AutoWindow.setWindowTitle(_translate("AutoWindow", "Auto Window", None))
+        self.actionAll_pannel.setText(_translate("AutoWindow", "All pannel", None))
+        self.actionHistogram.setText(_translate("AutoWindow", "Histogram", None))
+        self.actionTracker.setText(_translate("AutoWindow", "Tracker", None))
+        self.actionChannels.setText(_translate("AutoWindow", "Channels", None))
+        self.actionAll.setText(_translate("AutoWindow", "All", None))
 
 from pyqtgraph import GraphicsLayoutWidget
