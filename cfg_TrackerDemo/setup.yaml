@@ -52,7 +52,7 @@ ClassificationParameters:
             EnergyDepositPerPlaneMin: 20
     HighEnergyElectron:
         TotalEnergyDepositMin: 300
-        NumberOfHitsPerPlaneMin: 10
+        NumberOfHitsPerPlaneMin: 7
         EnergyDepositPerPlaneMin: 10
 
 

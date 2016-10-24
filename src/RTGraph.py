@@ -343,15 +343,17 @@ class LiveWindow(QtGui.QMainWindow):
             self.event_seperete=self.dico_live.event_id() # event's id 
             
             if self.dico_live.last_event_type == "Muon":
-                slope = None
-                if "m" in self.dico_live.fit_results : slope = self.dico_live.fit_results['m']
+                """slope = None
+                if "m" in self.dico_live.fit_results : slope = self.dico_live['MuonFitPara'].get_partial()[0]['m']
                 #print("slope=",slope)
                 if slope :
                     self.theta.append(math.atan(-1./(slope*self.slope_conversion_factor)))   # this is the right theat angle, the one measured with real coordinates
                     #self.theta.append(self.dico_live.fit_results['theta'])  # this is not the true theta (in terms of real coordinates)! Need to correct for that!
                     #print("true theta=",self.theta)
                 else :
-                    self.theta.append(0.)
+                    self.theta.append(0.)"""
+                slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
+                self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
                 if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
             
             self.FreqHist.setData(
