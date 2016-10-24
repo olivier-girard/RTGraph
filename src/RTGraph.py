@@ -221,11 +221,11 @@ class LiveWindow(QtGui.QMainWindow):
                 brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
         if (not self.integrate_on) and event_type=="Muon":
             if self.live_mode:
-                pos = current_pos+1
+                posi = current_pos+1
             else:
-                pos = current_pos
-            reg_y = self.acq_proc.Class_EventLive[fit_para_key][pos][0]['reg_y']
-            reg_z = self.acq_proc.Class_EventLive[fit_para_key][pos][0]['reg_z']
+                posi = current_pos
+            reg_y = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_y']
+            reg_z = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_z']
             self.droite.setData(reg_y,reg_z)
         else:
             self.droite.setData([0],[0])     # resets linear fit to nothing
