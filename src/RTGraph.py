@@ -54,6 +54,11 @@ class AutoWindow(QtGui.QMainWindow):
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
         
+        self.hdata     = None
+        self.fdata     = None
+        self.scattdata = None
+        self.linedata  = None
+        
         self.curdisplay = self.ui.autoplot.addPlot(title ="")
         #self.curdisplay.addItem(self.Hist)
         
@@ -70,11 +75,11 @@ class AutoWindow(QtGui.QMainWindow):
         self.timer.timeout.connect(self.change_display)
         self.timer.start(2000)
         
-    def set_data(self,hist,freq,scatt,line) :
-        self.Hist     = hist
-        self.FreqHist = freq
-        self.scatt    = scatt
-        self.droite   = line
+    def set_data(self,hist = None,freq = None,scatt = None,line = None) :
+        if hist  : self.hdata     = hist
+        if freq  : self.fdata     = freq
+        if scatt : self.scattdata = scatt
+        if line  : self.linedata  = line
 
     def change_display(self) :
         
@@ -90,7 +95,14 @@ class AutoWindow(QtGui.QMainWindow):
         for it in self.steps[self.curstep] :
             print ("Adding element")
             self.curdisplay.addItem(it)
-
+        
+        if hist and freq and scatt and line : 
+            print ("Setting data")
+            self.scatt.setData(**self.scattdata)
+            self.droite.setData(*self.linedata)
+            self.Hist.setData(*self.histdata)
+            self.FreqHist.setData(*self.freqdata)
+			
 class LiveWindow(QtGui.QMainWindow):
     
     integrate_on = False
@@ -243,6 +255,12 @@ class LiveWindow(QtGui.QMainWindow):
             self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
                 size=pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
                 brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
+                self.Auto.set_data(scatt=
+                	{ "x"  : self.acq_proc.x_coords, "y":self.acq_proc.y_coords,
+                	"size" : pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
+                	"brush": pt_colour["linear"](intensity,maxi=0,mini=90) }
+                )
+                
         if (not self.integrate_on) and event_type=="Muon":
             if self.live_mode:
                 posi = current_pos+1
@@ -251,8 +269,10 @@ class LiveWindow(QtGui.QMainWindow):
             reg_y = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_y']
             reg_z = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_z']
             self.droite.setData(reg_y,reg_z)
+            self.Auto.set_data(line=(reg_y,reg_z))
         else:
             self.droite.setData([0],[0])     # resets linear fit to nothing
+            self.Auto.set_data(line=([0],[0]))
         
         # checks if autorange is on: if yes, disable it
         if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
@@ -281,6 +301,7 @@ class LiveWindow(QtGui.QMainWindow):
         # update of the angle histogram
         self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 36))   # data histogram
         self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+        self.Auto.set_data(hist=(self.x,self.y))
         
         if self.calibrate_MIP and self.calib_events%10 :
             with open(self.path_calib,"w") as csvsavedfile:
@@ -290,7 +311,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
         
-        self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
+        #self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
         
         #input("Waiting that you click")
     
@@ -388,6 +409,7 @@ class LiveWindow(QtGui.QMainWindow):
                 [x[0] for x in self.vsampled["freq"]],
                 [x[1] for x in self.vsampled["freq"]],
                 stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+            self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
             
             self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
                                 self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['Disintegration'].len(),self.acq_proc.Class_EventLive['HighEnergyElectron'].len()]
