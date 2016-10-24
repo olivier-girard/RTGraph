@@ -100,8 +100,8 @@ class AutoWindow(QtGui.QMainWindow):
             print ("Setting data")
             self.scatt.setData(**self.scattdata)
             self.droite.setData(*self.linedata)
-            self.Hist.setData(*self.histdata)
-            self.FreqHist.setData(*self.freqdata)
+            self.Hist.setData(*self.hdata)
+            self.FreqHist.setData(*self.fdata)
 			
 class LiveWindow(QtGui.QMainWindow):
     
