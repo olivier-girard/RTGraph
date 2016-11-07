@@ -489,26 +489,6 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="4" column="1">
-            <widget class="QPushButton" name="rotation">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-             </property>
-             <property name="text">
-              <string>3D view Rotation</string>
-             </property>
-            </widget>
-           </item>
            <item row="9" column="1">
             <widget class="QLabel" name="label_5">
              <property name="font">

@@ -173,7 +173,7 @@ class AcqProcessing:
             if self.option != "AllEvents":
                 event_type = self.option
             else:
-                event_type = self.Class_EventLive["AllEventsType"][self.Class_EventLive[self.option].free_pos]
+                event_type = self.Class_EventLive["AllEventsType"][self.Class_EventLive[self.option].free_pos][0]
         
         if(len(data)!=len(self.sensor_ids)):
             log.warning("The geometry file doesn't fit with data length")

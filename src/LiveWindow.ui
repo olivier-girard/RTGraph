@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1348</width>
-    <height>920</height>
+    <height>946</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -308,13 +308,14 @@ QStatusBar {
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
+          <italic>false</italic>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
-         <string>0</string>
+         <string>  0</string>
         </property>
        </widget>
       </item>
@@ -323,7 +324,7 @@ QStatusBar {
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
           <italic>true</italic>
           <bold>true</bold>
@@ -334,7 +335,7 @@ QStatusBar {
 </string>
         </property>
         <property name="text">
-         <string>Energie deposit:  </string>
+         <string>Energy deposit:  </string>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -346,7 +347,7 @@ QStatusBar {
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
           <italic>true</italic>
           <bold>true</bold>
@@ -375,14 +376,14 @@ QStatusBar {
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
-          <italic>true</italic>
+          <italic>false</italic>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
-         <string>TextLabel</string>
+         <string>  NotClassified</string>
         </property>
        </widget>
       </item>
@@ -411,7 +412,7 @@ QStatusBar {
       <property name="font">
        <font>
         <family>URW Bookman L</family>
-        <pointsize>14</pointsize>
+        <pointsize>20</pointsize>
         <weight>75</weight>
         <italic>true</italic>
         <bold>true</bold>
@@ -480,7 +481,7 @@ color:rgb(0, 0, 0);
         </size>
        </property>
        <attribute name="title">
-        <string>2D track</string>
+        <string>Event display</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
@@ -496,28 +497,6 @@ color:rgb(0, 0, 0);
            </widget>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="threed">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>1318</width>
-         <height>0</height>
-        </size>
-       </property>
-       <attribute name="title">
-        <string>3D track</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="GLViewWidget" name="plt3d"/>
         </item>
        </layout>
       </widget>
@@ -556,26 +535,6 @@ color:rgb(0, 0, 0);
          <layout class="QGridLayout" name="gridLayout_9">
           <item row="0" column="0">
            <widget class="GraphicsLayoutWidget" name="pltfrequency"/>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="channel">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <attribute name="title">
-        <string>Channel</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_12">
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout_11">
-          <item row="0" column="0">
-           <widget class="GraphicsLayoutWidget" name="pltchannel"/>
           </item>
          </layout>
         </item>
@@ -650,11 +609,6 @@ color:rgb(0, 0, 0);
    <class>GraphicsLayoutWidget</class>
    <extends>QGraphicsView</extends>
    <header location="global">pyqtgraph</header>
-  </customwidget>
-  <customwidget>
-   <class>GLViewWidget</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">pyqtgraph.opengl</header>
   </customwidget>
  </customwidgets>
  <resources/>

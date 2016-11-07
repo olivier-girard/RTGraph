@@ -47,7 +47,6 @@ class AutoWindow(QtGui.QMainWindow):
         self.ui = Ui_AutoWindow()                                 #
         self.ui.setupUi(self)
         
-        self.img = pg.ImageItem()                                                   # image channel
         self.Hist=pg.PlotCurveItem()                                                # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                              # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))            # scatter plot
@@ -114,7 +113,6 @@ class LiveWindow(QtGui.QMainWindow):
         # Know about an instance of acquisition/processing code
         # to forward GUI events
         self.acq_proc = acq_proc    # object acquisition
-        self.view3d=View3D(self.ui.plt3d,acq_proc)    #     object 3d
         
         self.timer_plot_update = None
         self.timer_freq_update = None
@@ -157,7 +155,6 @@ class LiveWindow(QtGui.QMainWindow):
         # CONFIGURATION
     def configure_plot(self):
         # object plot 2D
-        self.img = pg.ImageItem()                                           # image channel
         self.Hist=pg.PlotCurveItem()                                        # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
@@ -166,18 +163,7 @@ class LiveWindow(QtGui.QMainWindow):
         self.module=[pg.GraphItem()]*400
         self.pb_plates=[None]*5       # Pb plates
         self.pb_plates_int=[None]*5     #Pb plates for integration window
-        # matrice 3D
-        self.pos3D = np.empty((self.acq_proc.num_sensors_enabled, 3))
-        self.size3D = np.empty(self.acq_proc.num_sensors_enabled)
-        self.color3D = np.empty((self.acq_proc.num_sensors_enabled, 4))
-        # Object plot 3D
-        self.scat3d = gl.GLScatterPlotItem(pos=self.pos3D, size=self.size3D, color=self.color3D, pxMode=False)
-        self.fit3d = gl.GLLinePlotItem(pos=self.pos3D,color=pg.glColor((0,1.3)), width=1, antialias=True)
-        self.view3d.w.addItem(self.scat3d)
-        self.view3d.w.addItem(self.fit3d)
         # Graphiques
-        self.channel = self.ui.pltchannel.addPlot(title ="Channels")                       
-        self.channel.addItem(self.img) 
         self.tracker = self.ui.plttracker.addPlot(title ="Tracker")
         self.tracker.addItem(self.droite)
         self.tracker.addItem(self.scatt)
@@ -208,7 +194,6 @@ class LiveWindow(QtGui.QMainWindow):
         self.timer_acquisition = QtCore.QTimer(self)
         self.timer_acquisition.timeout.connect(self.fill_dico)    # acquisition a chaque click d'horloge
         self.timer_plot_update.timeout.connect(self.update_plot)  # update plot a chaque click
-        self.view3d.timer_cam.start(10)                           # rotation camera
         
         #TIMER choose the event wanted display on the plot
     def timer(self,cmd="right"):         ## change data array position
@@ -250,9 +235,6 @@ class LiveWindow(QtGui.QMainWindow):
         print("Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
         self.event_type = event_type
         
-        # channel histogram
-        self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))      # affiche histogramme channel
-        
         # 2D scatter plot
         maxintensity = np.max(intensity)
         if(maxintensity!=0):
@@ -281,26 +263,6 @@ class LiveWindow(QtGui.QMainWindow):
         # checks if autorange is on: if yes, disable it
         if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
             self.setRange2Dplot()
-        
-        ###### 3D #######
-
-        x_coords=self.dico_live.simulation_x(intensity)     # this does actually always return the same angle!!!
-        for i in range(len(self.acq_proc.y_coords)):
-            self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
-            # array contenant les donnees 3d 
-        self.pos3D = np.asarray([[xi]+[yi-self.acq_proc.Sensor_per_Stage/2]+[zi-self.acq_proc.nb_Stage/2] for xi,yi,zi in zip(x_coords,self.acq_proc.x_coords,self.acq_proc.y_coords)])
-        if(maxintensity!=0):
-            #self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
-            self.scat3d.setData(pos=self.pos3D,size=pt_size["linear3D"](intensity,maxi=1,mini=0.1),color=np.asarray(pt_colour["linear3D"](intensity,maxi=0,mini=90))) # charge les donnees
-        self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d    # x_coord= coordonnées simulées des rectangles 
-        if event_type=="Muon":
-        # the third dimension is calculated with random
-            pos=self.dico_live.fit_event3D(intensity,self.pos3D)
-            self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
-            #self.fit3d.setData(pos=pos,color=pg.glColor('g'), width=5)  # charge les donnees de la droite 
-        else:
-            self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
-        self.ui.plt3d.items=self.view3d.w.items
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
         
@@ -555,7 +517,6 @@ class CommandWindow(QtGui.QMainWindow):
         self.plates = self.main.plates_Pb()
         
         self.Display.module_2D()
-        self.main.view3d.module([0.8,10,1/4])
         self.Display.view3d.module([0.8,10,1/4])
         #LOGO
         self.ui.label_logo.setPixmap(QtGui.QPixmap('/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/detector.jpg'))
@@ -584,7 +545,6 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.automatic_bt.clicked.connect(self.switch_automatic)
        
         #3D setup
-        self.ui.rotation.clicked.connect(self.main.rotation)
         self.ui.rotation_saved.clicked.connect(self.Display.rotation)
         #SAVED BUTTONS
         self.ui.pushButton_SavedData.clicked.connect(self.saved_data)
@@ -726,15 +686,15 @@ class CommandWindow(QtGui.QMainWindow):
             if(self.acq_proc.lastpos==True):
                 self.ui.CurrentEven.display(self.main.event_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
                                                 +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])
-                self.main.ui.EnergieDep.setText(str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
+                self.main.ui.EnergieDep.setText("  "+str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
                                                +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText(str(self.main.event_type))
+                self.main.ui.EventType.setText("  "+str(self.main.event_type))
             else:
                 self.ui.CurrentEven.display(self.main.event_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
                                                     +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])
-                self.main.ui.EnergieDep.setText(str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
+                self.main.ui.EnergieDep.setText("  "+str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
                                                +self.acq_proc.num_integrations*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText(str(self.main.event_type))
+                self.main.ui.EventType.setText("  "+str(self.main.event_type))
 
    # def message_error(self):
         
