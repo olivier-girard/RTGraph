@@ -74,6 +74,7 @@ def reject_hits_pattern_recognition(x_array,y_array, x_para,y_para,dist_thrs):
     
 
 # recognition of pattern from calculating slope and offset of each comibination of two hits
+# this one works nicely
 def reject_hits_pattern_recognition2(x_array,y_array,x_para,y_para,dist_thrs):
     
     """all_x = np.arange(x_para["min"],x_para["max"]+x_para["pitch"],x_para["pitch"])
@@ -92,7 +93,8 @@ def reject_hits_pattern_recognition2(x_array,y_array,x_para,y_para,dist_thrs):
     
     allpts = list(zip(x_array, y_array))
     slope_vs_offset = []    # we take the inverse of the slope to avoid infinite slope
-    print("allpts=",allpts)
+    
+    #print("allpts=",allpts)
     points_already_analyzed = []
     for i,(x1,y1) in enumerate(allpts):
         for j,(x2,y2) in enumerate(allpts):
@@ -109,13 +111,13 @@ def reject_hits_pattern_recognition2(x_array,y_array,x_para,y_para,dist_thrs):
     ycenters = 0.5*(yedges[1:]+yedges[:-1])
     # Finds where the maximum is (finds only one maximum)
     max_pos = np.unravel_index(H.argmax(), H.shape)
-    print("max_pos=",max_pos,"   Hmax=",H.max())
+    #print("max_pos=",max_pos,"   Hmax=",H.max())
     offset_at_max = ycenters[max_pos[1]]
     inv_slope_at_max = xcenters[max_pos[0]]
-    print("offset_at_max=",offset_at_max,"   inv_slope_at_max=",inv_slope_at_max)
+    #print("offset_at_max=",offset_at_max,"   inv_slope_at_max=",inv_slope_at_max)
     
     xt_each_layer = { yti: inv_slope_at_max*yti + offset_at_max for yti in all_y }
-    print("xt_each_layer=",xt_each_layer)
+    #print("xt_each_layer=",xt_each_layer)
     
     xout = []
     yout = []
@@ -125,9 +127,9 @@ def reject_hits_pattern_recognition2(x_array,y_array,x_para,y_para,dist_thrs):
             xout += [x1]
             yout += [y1]
     
-    print("xout=",xout)
-    print("yout=",yout)
-    print(len(x_array)-len(xout),"point(s) removed!")
+    #print("xout=",xout)
+    #print("yout=",yout)
+    #print(len(x_array)-len(xout),"point(s) removed!")
     
     return xout,yout
     

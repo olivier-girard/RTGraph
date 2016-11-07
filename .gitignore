@@ -58,4 +58,5 @@ target/
 
 # Local data
 data/*.csv
+SavedData/data/*.csv
 .idea/workspace.xml

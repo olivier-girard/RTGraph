@@ -112,11 +112,6 @@ class Classify(object):
                 fit_results = {'reg_y':reg_y, 'reg_z':reg_z, 'm':m, 'theta':theta, 'chi2':chi2}
                 self.cmd['MuonFitPara'].append(fit_results)
                 self.cmd['AllEventsMuonFitPara'].append(fit_results)
-                """self.fit_results['reg_y'] = reg_y
-                self.fit_results['reg_z'] = reg_z
-                self.fit_results['m'] = m
-                self.fit_results['theta'] = theta
-                self.fit_results['chi2']  = chi2"""
                 #self.fit_results.append(fit_results)
                 self.last_event_type = "Muon"
                 return True
@@ -164,20 +159,16 @@ class Classify(object):
     def isHighE(self, Nsig_per_plane, mip_per_plane):
         # For a large energy deposit event, we want:
         # 1) Large total energy deposit
-        # 2) Large energy deposit in each layer
-        # 3) Large number of hits
+        # 2) Large number of hits
         
         energy_tot=sum(mip_per_plane)  # total energy deposit
-        if energy_tot>=self.classification_para['HighEnergyElectron']['TotalEnergyDepositMin']:
-            for (nsig,mip) in zip(Nsig_per_plane,mip_per_plane):
-                if not (nsig>=self.classification_para['HighEnergyElectron']['NumberOfHitsPerPlaneMin'] and 
-                            mip>=self.classification_para['HighEnergyElectron']['EnergyDepositPerPlaneMin']):
-                    return False
+        Nhits_tot=sum(Nsig_per_plane)
+        if (energy_tot>=self.classification_para['HighEnergyElectron']['TotalEnergyDepositMin'] and 
+                    Nhits_tot>=self.classification_para['HighEnergyElectron']['TotalNumberOfHits']):
+            self.last_event_type = "HighEnergyElectron"
+            return True
         else:
             return False
-            
-        self.last_event_type = "HighEnergyElectron"
-        return True
     
     def classify_event(self,data,event):
         ts = time.time()
@@ -197,7 +188,7 @@ class Classify(object):
                 self.event[2].append(event[0])
                 self.energie[2].append(self.energie_deposite(data))
                 self.cmd['AllEventsType'].append("Electron")
-                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                fit_results = {'reg_y':[0,0], 'reg_z':[0,0], 'm':0, 'theta':0, 'chi2':0}
                 self.cmd['AllEventsMuonFitPara'].append(fit_results)
             
             elif self.isDisintegration(Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
@@ -205,7 +196,7 @@ class Classify(object):
                 self.event[3].append(event[0])
                 self.energie[3].append(self.energie_deposite(data))
                 self.cmd['AllEventsType'].append("Disintegration")
-                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                fit_results = {'reg_y':[0,0], 'reg_z':[0,0], 'm':0, 'theta':0, 'chi2':0}
                 self.cmd['AllEventsMuonFitPara'].append(fit_results)
                 
             elif self.isHighE(Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
@@ -213,7 +204,7 @@ class Classify(object):
                 self.event[4].append(event[0])
                 self.energie[4].append(self.energie_deposite(data))
                 self.cmd['AllEventsType'].append("HighEnergyElectron")
-                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                fit_results = {'reg_y':[0,0], 'reg_z':[0,0], 'm':0, 'theta':0, 'chi2':0}
                 self.cmd['AllEventsMuonFitPara'].append(fit_results)
                 
             elif self.isMuon(data,Nbr_Signal_per_Stage,Nbr_Mip_per_Stage):
@@ -225,7 +216,7 @@ class Classify(object):
             else: # all other event that are not classified
                 self.last_event_type = "NotClassified"
                 self.cmd['AllEventsType'].append("NotClassified")
-                fit_results = {'reg_y':0, 'reg_z':0, 'm':0, 'theta':0, 'chi2':0}
+                fit_results = {'reg_y':[0,0], 'reg_z':[0,0], 'm':0, 'theta':0, 'chi2':0}
                 self.cmd['AllEventsMuonFitPara'].append(fit_results)
                 
         return self.cmd
@@ -262,7 +253,7 @@ class Classify(object):
             print(round(value,3),' ', end='')
             if((i+1)%self.Sensor_per_Stage==0):
                 print("\n")
-        print(len(data),"\n")
+        #print(len(data),"\n")
     
     
     def simulation_x(self,data):
@@ -313,7 +304,7 @@ class Classify(object):
                     x.append(5)
         return y,z,x
         
-    def fit_event3D(self,data,pos):
+    def fit_event3D(self,data,pos): # this fit does not work. it does not do the same as the 2D fit which works nicely
         pos_signal = np.empty((self.acq_proc.num_sensors_enabled, 3),dtype=int)
         verts=np.empty((2, 1, 3), dtype=float)
         counter=0
@@ -338,7 +329,7 @@ class Classify(object):
             if len(yout)>2 and len(zout)>2:
                 m, z0, chi2 = fittype(yout,zout)
             else:
-                return [0], [0], 0, 0, 1000
+                return [0,0], [0,0], 0, 0, 1000
         else:
             m, z0, chi2 = fittype(y,z)
         
@@ -379,7 +370,7 @@ class Classify(object):
                 reg_y.append(xmax)
                 reg_z.append(y_intersect_xmax)
                 
-        print("m=",m,"   theta=",theta,"   chi2=",chi2)
+        #print("m=",m,"   theta=",theta,"   chi2=",chi2)
         return reg_y, reg_z, m, theta, chi2
         
 ############################### non utilisé ###########################    
@@ -397,7 +388,7 @@ class Classify(object):
                         angle[i2]=0
                 nbr_ev.append(nbr)
                 nbr=0
-        print(nbr_ev,np.round(val_theta),x,y)
+        #print(nbr_ev,np.round(val_theta),x,y)
         return np.asarray(nbr_ev),np.asarray(val_theta) 
         
     def class_muon(self):

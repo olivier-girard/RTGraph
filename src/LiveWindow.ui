@@ -390,10 +390,22 @@ QStatusBar {
     </item>
     <item row="1" column="2">
      <widget class="QTabWidget" name="display">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>1330</width>
         <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
        </size>
       </property>
       <property name="font">
@@ -436,7 +448,37 @@ color:rgb(0, 0, 0);
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>true</bool>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
       <widget class="QWidget" name="tracker">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>1318</width>
+         <height>0</height>
+        </size>
+       </property>
        <attribute name="title">
         <string>2D track</string>
        </attribute>
@@ -458,6 +500,18 @@ color:rgb(0, 0, 0);
        </layout>
       </widget>
       <widget class="QWidget" name="threed">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>1318</width>
+         <height>0</height>
+        </size>
+       </property>
        <attribute name="title">
         <string>3D track</string>
        </attribute>
@@ -468,6 +522,12 @@ color:rgb(0, 0, 0);
        </layout>
       </widget>
       <widget class="QWidget" name="histogram">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
         <string>Angle</string>
        </attribute>
@@ -482,6 +542,12 @@ color:rgb(0, 0, 0);
        </layout>
       </widget>
       <widget class="QWidget" name="frequency">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
         <string>Frequency</string>
        </attribute>
@@ -496,6 +562,12 @@ color:rgb(0, 0, 0);
        </layout>
       </widget>
       <widget class="QWidget" name="channel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
         <string>Channel</string>
        </attribute>
@@ -504,6 +576,26 @@ color:rgb(0, 0, 0);
          <layout class="QGridLayout" name="gridLayout_11">
           <item row="0" column="0">
            <widget class="GraphicsLayoutWidget" name="pltchannel"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="Integration_tab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>Integration</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="GraphicsLayoutWidget" name="integview"/>
           </item>
          </layout>
         </item>

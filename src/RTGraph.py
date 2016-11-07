@@ -47,13 +47,11 @@ class AutoWindow(QtGui.QMainWindow):
         self.ui = Ui_AutoWindow()                                 #
         self.ui.setupUi(self)
         
-        self.img = pg.ImageItem()                                           # image channel
-        self.Hist=pg.PlotCurveItem()                                        # histogramme 
-        self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
-        self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
-        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
-                
-        self.modules = None
+        self.img = pg.ImageItem()                                                   # image channel
+        self.Hist=pg.PlotCurveItem()                                                # histogramme 
+        self.FreqHist=pg.PlotCurveItem(stepMode=False)                              # histogramme
+        self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))            # scatter plot
+        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))    # track fit
         
         self.hdata     = None
         self.fdata     = None
@@ -61,7 +59,6 @@ class AutoWindow(QtGui.QMainWindow):
         self.linedata  = None
         
         self.curdisplay = self.ui.autoplot.addPlot(title ="")
-        #self.curdisplay.addItem(self.Hist)
         
         self.curstep = 0
         self.steps = [ 
@@ -70,11 +67,11 @@ class AutoWindow(QtGui.QMainWindow):
                         [self.FreqHist]
                         ]
         self.curdisplay.addItem(self.steps[0][0])
-        #self.curdisplay.addItem(self.steps[0][0])
         
         self.timer=QtCore.QTimer(self)
         self.timer.timeout.connect(self.change_display)
-        self.timer.start(5000)
+        self.timer.setInterval(3000)
+        self.timer.start()
         
     def set_data(self,hist = None,freq = None,scatt = None,line = None) :
         if hist  : self.hdata     = hist
@@ -83,12 +80,10 @@ class AutoWindow(QtGui.QMainWindow):
         if line  : self.linedata  = line
 
     def set_modules(self, modules):
-        self.modules = modules
-        self.steps[0] += self.modules
+        self.steps[0] += modules
 
     def change_display(self) :
         
-        print("Inside change_display(self)")
         prevstep = self.curstep
         if self.curstep < (len(self.steps)-1) :
             self.curstep += 1
@@ -100,16 +95,16 @@ class AutoWindow(QtGui.QMainWindow):
         for it in self.steps[self.curstep] :
             self.curdisplay.addItem(it)
         
-        if self.hdata and self.fdata and self.scattdata and self.linedata : 
-            print("Setting data")
+        if self.scattdata is not None and self.curstep==0:
             self.scatt.setData(**self.scattdata)
+        if self.linedata is not None and self.curstep==0:
             self.droite.setData(*self.linedata)
+        if self.hdata is not None and self.curstep==1:    
             self.Hist.setData(*self.hdata,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
+        if self.fdata is not None and self.curstep==2:
             self.FreqHist.setData(*self.fdata,stepMode=False, fillLevel=0, brush=(0, 0, 255, 80))
             
 class LiveWindow(QtGui.QMainWindow):
-    
-    integrate_on = False
     
     def __init__(self, acq_proc):
         QtGui.QMainWindow.__init__(self)      #     objet fenetre live
@@ -148,7 +143,6 @@ class LiveWindow(QtGui.QMainWindow):
         self.int_events = 0
         self.calib_events = 0
         self.int_intensities = []
-        self.int_colors = []
         self.theta = []
         
         # configures plots
@@ -156,9 +150,7 @@ class LiveWindow(QtGui.QMainWindow):
         self.slope_conversion_factor = 1    # conversion of slope in 2D plot and in reality
         #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
         
-        self.Auto=AutoWindow() 
-        self.Auto.set_data(self.Hist,self.FreqHist,self.scatt,self.droite)
-        self.Auto.show()
+        self.Auto = None
 
 
         # CONFIGURATION
@@ -168,9 +160,11 @@ class LiveWindow(QtGui.QMainWindow):
         self.Hist=pg.PlotCurveItem()                                        # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
+        self.integ = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot for inegration
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
         self.module=[pg.GraphItem()]*400
         self.pb_plates=[None]*5       # Pb plates
+        self.pb_plates_int=[None]*5     #Pb plates for integration window
         # matrice 3D
         self.pos3D = np.empty((self.acq_proc.num_sensors_enabled, 3))
         self.size3D = np.empty(self.acq_proc.num_sensors_enabled)
@@ -190,6 +184,8 @@ class LiveWindow(QtGui.QMainWindow):
         self.histogram.addItem(self.Hist)
         self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
         self.frequency.addItem(self.FreqHist)
+        self.integration_view = self.ui.integview.addPlot(title ="Integration")
+        self.integration_view.addItem(self.integ) 
         
     def setRange2Dplot(self):
         # set 2D plot range
@@ -202,6 +198,9 @@ class LiveWindow(QtGui.QMainWindow):
         self.scatt.getViewBox().setXRange(minx-0.5*spacing_x, maxx+0.5*spacing_x, padding=None)
         self.scatt.getViewBox().setYRange(miny-0.5*spacing_y, maxy+0.5*spacing_y, padding=None)
         self.scatt.getViewBox().disableAutoRange()
+        self.integ.getViewBox().setXRange(minx-0.5*spacing_x, maxx+0.5*spacing_x, padding=None)
+        self.integ.getViewBox().setYRange(miny-0.5*spacing_y, maxy+0.5*spacing_y, padding=None)
+        self.integ.getViewBox().disableAutoRange()
         
     def configure_timers(self):
         self.timer_plot_update = QtCore.QTimer(self)
@@ -232,8 +231,40 @@ class LiveWindow(QtGui.QMainWindow):
             self.timer_plot_update.stop()
             return
         
+        """intensity, self.data = self.acq_proc.plot_signals_scatter()
+        
+        integ_intensity = self.integrate(intensity)
+        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
+                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90)) # plot scatter
+        
+        if self.calibrate_MIP and self.calib_events%10 :
+            with open(self.path_calib,"w") as csvsavedfile:
+                writerdata=csv.writer(csvsavedfile,delimiter='\t',
+                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writerdata.writerows(self.mip_calibration)
+        
+        #event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos][0]
+        event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive["AllEventsType"].free_pos][0]
+        print("Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
+        
         if self.acq_proc.option!="AllEvents":
-            event_type = self.acq_proc.option
+            fit_para_key = "MuonFitPara"
+            if event_type!=self.acq_proc.option and not self.live_mode:
+                return
+        else:
+            fit_para_key = "AllEventsMuonFitPara"
+        self.event_type = event_type
+        """
+        
+        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
+        
+        if self.acq_proc.option!="AllEvents":
+            if self.live_mode:
+                posi = current_pos+1
+                event_type = self.acq_proc.Class_EventLive["AllEventsType"][posi][0]
+            else:
+                event_type = self.acq_proc.option
             fit_para_key = "MuonFitPara"
         else:
             event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos][0]
@@ -244,68 +275,68 @@ class LiveWindow(QtGui.QMainWindow):
 
         intensity, self.data = self.acq_proc.plot_signals_scatter()
         
-        mini_size = 0.1
-        if self.integrate_on:
-            intensity = self.integrate(intensity)
-            mini_size = 0.01
+        integ_intensity = self.integrate(intensity)
+        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
+                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90)) # plot scatter
         
         # channel histogram
-        self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))                                 # affiche histogramme channel
+        self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))      # affiche histogramme channel
         
         # 2D scatter plot
         maxintensity = np.max(intensity)
         if(maxintensity!=0):
             # point size and colour are defined in file configurePlots.py
             self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
-                size=pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
+                size=pt_size["linear"](intensity,maxi=1,mini=0.1,saturate_at=0.5),
                 brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
-            self.Auto.set_data(scatt=
-                    { "x"  : self.acq_proc.x_coords, "y":self.acq_proc.y_coords,
-                    "size" : pt_size["linear"](intensity,maxi=1,mini=mini_size,saturate_at=0.5),
-                    "brush": pt_colour["linear"](intensity,maxi=0,mini=90) }
-                )
+            if self.Auto : self.Auto.set_data(
+                scatt = { "x"  : self.acq_proc.x_coords[:], "y":self.acq_proc.y_coords[:],
+                          "size" : pt_size["linear"](intensity[:],maxi=1,mini=0.1,saturate_at=0.5),
+                          "brush": pt_colour["linear"](intensity[:],maxi=0,mini=90) } )
                 
-        if (not self.integrate_on) and event_type=="Muon":
-            if self.live_mode:
-                posi = current_pos+1
-            else:
-                posi = current_pos
+        if event_type=="Muon":
+            #print("Drawing the fit!!!!!!!!!!!!!")
+            if self.live_mode: posi = current_pos+1
+            else: posi = current_pos
+            """print("self.acq_proc.Class_EventLive[fit_para_key]=",self.acq_proc.Class_EventLive[fit_para_key])
+            print("fit_para_key=",fit_para_key)
+            print("posi=",posi)
+            print("self.acq_proc.Class_EventLive[fit_para_key][posi]=",self.acq_proc.Class_EventLive[fit_para_key][posi])
+            print("self.acq_proc.Class_EventLive[fit_para_key][posi][0]=",self.acq_proc.Class_EventLive[fit_para_key][posi][0])"""
             reg_y = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_y']
             reg_z = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_z']
             self.droite.setData(reg_y,reg_z)
-            self.Auto.set_data(line=(reg_y,reg_z))
+            if self.Auto : self.Auto.set_data(line=(reg_y[:],reg_z[:]))
+        elif self.acq_proc.option == "Muon":
+            pass
         else:
             self.droite.setData([0],[0])     # resets linear fit to nothing
-            self.Auto.set_data(line=([0],[0]))
+            if self.Auto : self.Auto.set_data(line=([0],[0]))
         
         # checks if autorange is on: if yes, disable it
         if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
             self.setRange2Dplot()
         
         ###### 3D #######
-        if not self.integrate_on:
-            y,z,x_coord=self.dico_live.signal_xyz(intensity)                    # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
-            x_coords=self.dico_live.simulation_x(intensity)
-            for i in range(len(self.acq_proc.y_coords)):
-                self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
-        # array contenant les donnees 3d 
-            self.pos3D=np.vstack([x_coords,-self.acq_proc.Sensor_per_Stage/2+self.acq_proc.x_coords,-self.acq_proc.nb_Stage/2 + self.acq_proc.y_coords]).transpose()
-            if(maxintensity!=0):
-        #self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
-                self.scat3d.setData(pos=self.pos3D,size=pt_size["linear"](intensity,maxi=1,mini=0.1),color=self.color3D) # charge les donnees
-            self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d    # x_coord= coordonnées simulées des rectangles 
-            if(self.option_num==1):
-            # the third dimension is calculated with random
-                pos=self.dico_live.fit_event3D(intensity,self.pos3D)
-                self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
-            if(self.option_num!=1):
-                self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
-            self.ui.plt3d.items=self.view3d.w.items
-        
-        # update of the angle histogram
-        self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 18))   # data histogram
-        self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
-        self.Auto.set_data(hist=(self.x,self.y))
+
+        x_coords=self.dico_live.simulation_x(intensity)     # this does actually always return the same angle!!!
+        for i in range(len(self.acq_proc.y_coords)):
+            self.color3D[i]=(1,1,1,1)                                       # COULEUR SCATTER3D
+            # array contenant les donnees 3d 
+        self.pos3D = np.asarray([[xi]+[yi-self.acq_proc.Sensor_per_Stage/2]+[zi-self.acq_proc.nb_Stage/2] for xi,yi,zi in zip(x_coords,self.acq_proc.x_coords,self.acq_proc.y_coords)])
+        if(maxintensity!=0):
+            #self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
+            self.scat3d.setData(pos=self.pos3D,size=pt_size["linear3D"](intensity,maxi=1,mini=0.1),color=np.asarray(pt_colour["linear3D"](intensity,maxi=0,mini=90))) # charge les donnees
+        self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d    # x_coord= coordonnées simulées des rectangles 
+        if event_type=="Muon":
+        # the third dimension is calculated with random
+            pos=self.dico_live.fit_event3D(intensity,self.pos3D)
+            self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
+            #self.fit3d.setData(pos=pos,color=pg.glColor('g'), width=5)  # charge les donnees de la droite 
+        else:
+            self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
+        self.ui.plt3d.items=self.view3d.w.items
         
         if self.calibrate_MIP and self.calib_events%10 :
             with open(self.path_calib,"w") as csvsavedfile:
@@ -315,8 +346,7 @@ class LiveWindow(QtGui.QMainWindow):
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
         
-        #input("Waiting that you click")
-    
+
     def integrate(self,intensity) :
         
         self.int_events += 1
@@ -332,20 +362,20 @@ class LiveWindow(QtGui.QMainWindow):
             
         self.int_intensities = int_intensity
         
-        return np.array(int_intensity)*10.
+        return np.array(int_intensity)
 
-    def calibrate(self,intensity) : # intensity is data here !
+    def calibrate(self,data) : 
         self.calib_events += 1
         if len(self.mip_calibration) == 0 :
-            for ni in intensity :
-                 if ni > 0 : self.mip_calibration.append( (ni, 1) )
-                 else : self.mip_calibration.append( (0, 0) )
+            for ni in data :
+                if ni[0] > 0 : self.mip_calibration.append( (ni[0], 1) )
+                else : self.mip_calibration.append( (0, 0) )
             return
             
         newcalib = []    
-        for ni,i in zip(intensity,self.mip_calibration) :
-            intens, nevts = i
-            if ni > 0 : newcalib.append( ( (nevts*intens + ni)/(nevts+1), nevts+1 ) )
+        for ni,i in zip(data,self.mip_calibration) :
+            oldv, nevts = i
+            if ni[0] > 0 : newcalib.append( ( (nevts*oldv + ni[0])/(nevts+1), nevts+1 ) )
             else : newcalib.append(i)
                     
         self.mip_calibration = newcalib
@@ -370,6 +400,9 @@ class LiveWindow(QtGui.QMainWindow):
                 if not self.trigger_dec : return
             ## continuing what was there before
             
+            # Make a sound
+            os.system("echo -e '\a'")#beep -f 555 -l 460")
+            
             ## Frequqncy plot
             nt = time.time() - self.start_time
             if len(self.tsampled) == 0 :
@@ -384,7 +417,10 @@ class LiveWindow(QtGui.QMainWindow):
                 self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
                 
                 ## Only for dn > 0 to avoid negative frequencies when time resets
-                if dn > 0 : self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
+                if dn > 0 : 
+                    self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
+                    if len(self.vsampled["freq"]) > 10000 :
+                        self.vsampled["freq"] = self.vsampled["freq"][10:]
             
             self.acq_proc.Class_EventLive = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
@@ -394,17 +430,22 @@ class LiveWindow(QtGui.QMainWindow):
                 slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
                 if slope!=None:
                     self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
-                    print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
+                    #print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
                 else:
                     self.theta.append(0)
-                    print("m=",slope,"theta=",0)
+                    #print("m=",slope,"theta=",0)
                 if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
+            
+            # update of the angle histogram
+            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 18))   # data histogram
+            self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+            if self.Auto : self.Auto.set_data(hist=(self.x,self.y))
             
             self.FreqHist.setData(
                 [x[0] for x in self.vsampled["freq"]],
                 [x[1] for x in self.vsampled["freq"]],
                 stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
-            self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
+            if self.Auto : self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
             
             self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
                                 self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['Disintegration'].len(),self.acq_proc.Class_EventLive['HighEnergyElectron'].len()]
@@ -467,6 +508,7 @@ class LiveWindow(QtGui.QMainWindow):
             adj=np.array([[0,1],[1,3],[3,2],[2,0]])
             self.module[i]=pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True)
             self.tracker.addItem(self.module[i])
+            self.integration_view.addItem(pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True))
             module_list.append(pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True))
         return module_list
     
@@ -484,7 +526,8 @@ class LiveWindow(QtGui.QMainWindow):
         y_middle.append(0.5*(sorted_y[6] + sorted_y[5]))
         y_middle.append(0.5*(sorted_y[7] + sorted_y[6]))
         
-        x_width = (30*1)/3      # 30 cm wide
+        x_width = (30*1)/3      # 30 cm wide: this is only the width of Lead
+        x_width = (40*1)/3      # 40 cm wide: this is the total width including the aluminum support
         y_width = (0.5*1)/10    # 0.5 cm thick
         
         plate_list = []
@@ -492,6 +535,9 @@ class LiveWindow(QtGui.QMainWindow):
             self.pb_plates[i] = pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width)
             self.pb_plates[i].setBrush(pg.mkBrush('c'))
             self.tracker.addItem(self.pb_plates[i])
+            self.pb_plates_int[i] = pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width)
+            self.pb_plates_int[i].setBrush(pg.mkBrush('c'))
+            self.integration_view.addItem(self.pb_plates_int[i])
             plate_list.append(pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width))
             plate_list[i].setBrush(pg.mkBrush('c'))
         return plate_list
@@ -532,9 +578,8 @@ class CommandWindow(QtGui.QMainWindow):
         self.get_value_USB_board()
         self.get_file_USB_board()
         
-        modules = self.main.module_2D() 
-        plates = self.main.plates_Pb()
-        self.main.Auto.set_modules(modules+plates)
+        self.modules = self.main.module_2D() 
+        self.plates = self.main.plates_Pb()
         
         self.Display.module_2D()
         self.main.view3d.module([0.8,10,1/4])
@@ -562,7 +607,7 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.radioButton_disintegration.clicked.connect(self.main.state_plotDisintegration)
         self.ui.radioButton_highelectron.clicked.connect(self.main.state_plotHighEnergyElectron)
         self.ui.radioButton_All.clicked.connect(self.main.state_plotAll)
-        self.ui.integration_bt.clicked.connect(self.switch_integration)
+        #self.ui.integration_bt.clicked.connect(self.switch_integration)
         self.ui.automatic_bt.clicked.connect(self.switch_automatic)
        
         #3D setup
@@ -592,20 +637,17 @@ class CommandWindow(QtGui.QMainWindow):
         #POSTER
         self.ui.poster.clicked.connect(self.poster)
     
-    def switch_integration(self) :
-        self.main.integrate_on = not self.main.integrate_on
-        print ("Integration mode ON --> ",self.main.integrate_on)
+    #def switch_integration(self) :
+    #    self.main.integrate_on = not self.main.integrate_on
+    #    print ("Integration mode ON --> ",self.main.integrate_on)
     
     def switch_automatic(self) :
-        self.live()
-        #while True :
-        #    
-        #    print ("INWHILE")
-        #    i, o, e = select.select( [sys.stdin], [], [], 10 )
-        #    if i : break
-            
-            
-    
+        print ("Starting automatic window")
+        self.Auto=AutoWindow() 
+        self.main.Auto = self.Auto
+        self.main.Auto.set_modules(self.modules+self.plates)
+        self.Auto.show()
+   
         # unused
     def change_buffer_size(self):
         self.acq_proc.num_integrations=self.ui.spinBox_Acq.value()
@@ -734,13 +776,13 @@ class CommandWindow(QtGui.QMainWindow):
         #cmd="./fake_track_pebs.py"
         
         #------ USBBoard true DAQ: for single DAQ -> generating only one ROOT file and then terminate
-        cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
-        fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
-        options=[fullname, str(self.USBboard_Nevents)]
+        #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq.sh"
+        #fullname=str(self.USBboard_filepath)+str(self.USBboard_filename)+str(self.USBboard_filecounter)+".root"
+        #options=[fullname, str(self.USBboard_Nevents)]
         
         #------ USBBoard true DAQ: for multiple DAQ -> generating ROOT file with Nevents and then restarting (with an increment in the filename)
-        #cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
-        #options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
+        cmd="/home/lphe/usbBoard/Builds/tracker_demo_daq_multiple.sh"
+        options=[str(self.USBboard_filepath), str(self.USBboard_filename), str(self.USBboard_Nevents)]
         
         #------ Faking TRACKERDEMO DAQ
         #cmd="./fake_track_TrackerDemo.py"
@@ -993,7 +1035,7 @@ class SavedWindow(QtGui.QMainWindow):
         maxintensity = np.max(intensity)
         for i in range(len(self.acq_proc.sensor_ids)):
              intensity[i]=math.log(intensity[i]+1)
-             colors.append(pg.intColor(2+intensity[i], hues=(100/self.acq_proc.PetoMip)*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) 
+             colors.append(pg.intColor(2+intensity[i], hues=(100/(self.acq_proc.PetoMip/10.5))*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) 
         return intensity, colors, maxintensity,data
     
         # PROCESS DATA      give data in photoelectron or in MIP 

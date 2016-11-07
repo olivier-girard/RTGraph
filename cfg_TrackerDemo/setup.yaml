@@ -13,19 +13,21 @@ Pedestals:
     # trigger on board 80 = layer A+B
 #    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger80/pedestal1_csv.csv
     # trigger on board 84 = layer E+F
-    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger84/pedestal1_csv.csv
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger84/pedestal1_csv.csv
+    # Ready for open day
+    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/ReadyForOpenDay/pedestal_csv1.csv
 
 # set all gain values in ADC/PE (if Yes set to the value, if No, takes from gain csv file)
 Gains:
-    AllGain: Yes
+    AllGain: No
     AllGainVal: 10.5
-    GainFilePath: setup_examples/gain_csv.csv
+    GainFilePath: /home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/gain_correction1.csv # this file sets the gain around 1. The conversion from ADC to MIP is done through PetoMip
 
 # set a Threshold values (in MIP)
-Threshold: 0.6
+Threshold: 0.3
 
 # PE to MIP (convertion factor from photoelectron to MIP)
-PetoMip: 7
+PetoMip: 186 # ADC to MIP
 
 
 #Sort out Parameters 
@@ -34,10 +36,10 @@ PetoMip: 7
 ClassificationParameters:
     Muon:
         TotalEnergyDepositMax: 30
-        EnergyDepositPerPlane: 10
+        EnergyDepositPerPlane: 5
         NumberOfDetectionPoints: 7
         MaximumNumberOfHitsPerPlane: 2
-        MaxChi2: 5
+        MaxChi2: 10
     Electron:
         TotalEnergyDepositMin: 30
         NumberOfHitsPerPlaneMax: 10
@@ -49,11 +51,10 @@ ClassificationParameters:
         After:
             NumberOfLayersMin: 3
             NumberOfHitsPerPlaneMin: 2
-            EnergyDepositPerPlaneMin: 20
+            EnergyDepositPerPlaneMin: 10
     HighEnergyElectron:
-        TotalEnergyDepositMin: 300
-        NumberOfHitsPerPlaneMin: 7
-        EnergyDepositPerPlaneMin: 10
+        TotalEnergyDepositMin: 150
+        TotalNumberOfHits: 50
 
 
 

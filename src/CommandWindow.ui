@@ -386,19 +386,6 @@ QPushButton:pressed {
           <number>0</number>
          </property>
          <item>
-          <widget class="QPushButton" name="integration_bt">
-           <property name="minimumSize">
-            <size>
-             <width>50</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Integration mode</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <widget class="QPushButton" name="automatic_bt">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -423,6 +410,15 @@ QPushButton:pressed {
              <width>300</width>
              <height>30</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>URW Bookman L</family>
+             <pointsize>16</pointsize>
+             <weight>75</weight>
+             <italic>true</italic>
+             <bold>true</bold>
+            </font>
            </property>
            <property name="text">
             <string>Automatic mode</string>

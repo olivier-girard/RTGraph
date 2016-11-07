@@ -181,11 +181,8 @@ class AcqProcessing:
             data=self.data.get_partial() # last value    get partial donne la dernierre donnee aquise
             pedestals=self.calibration_all_channels['pedestals'] # charge pedestaux   array size nb_sensor
             gains=self.calibration_all_channels['gains']  # charge gain
-            for i in range(len(gains)):                
-                if(gains[i]==0):    
-                    gains[i]=1
-                    log.warning("Gains is null")
-            data=(data-pedestals)/(gains[0:self.num_sensors_enabled]*self.PetoMip)# data in ADC counts converted to MIP
+            
+            data = np.asarray([(d-p)/(g*self.PetoMip) for d,p,g in zip(data, pedestals, gains)])
             for i in range(len(data)):                  #retire les donnees en dessous de threshold
                 if(data[i]<0 or data[i]<self.Threshold):
                     data[i]=0
@@ -213,6 +210,7 @@ class AcqProcessing:
                 self.nb_Stage+=1
         if np.array_equal(np.sort(sensor_num), np.arange(len(sensor_num))):
             log.warning('Sensors ID not starting at 0, or duplicated, or missing')
+        
         
     def set_num_sensors(self, value):
         self.num_sensors = value
@@ -365,6 +363,11 @@ class AcqProcessing:
         else:
             log.info("Setting gains from file {}".format(self.path_gain_file))
             self.loadCSVfile(self.path_gain_file, 'gains')
+        
+        for i,g in enumerate(self.calibration_all_channels['gains']):
+            if(g==0):    
+                self.calibration_all_channels['gains'][i] = 1
+                log.warning("Gain {} is zero. Set it to 1.".format(i))
         
         # defines max_intensity for signal normalization
         # normalization = (MAX_adc - pedestal)/(gain * PEtoMIP)
