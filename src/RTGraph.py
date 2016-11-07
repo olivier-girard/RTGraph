@@ -139,6 +139,7 @@ class LiveWindow(QtGui.QMainWindow):
         ## For integration
         self.path_calib = "./mip_calibration.csv"
         self.calibrate_MIP = True
+        self.calibration_CSV_write_frequency = 10
         self.mip_calibration = []
         self.int_events = 0
         self.calib_events = 0
@@ -227,58 +228,27 @@ class LiveWindow(QtGui.QMainWindow):
                 return
                 
         current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
-        if( self.acq_proc.plot_signals_scatter()==False ):                                                            # mistake between sensorenable and datapipe lenght
+        if( self.acq_proc.plot_signals_scatter()==False ):                         # mistake between sensorenable and datapipe lenght
             self.timer_plot_update.stop()
             return
         
-        """intensity, self.data = self.acq_proc.plot_signals_scatter()
+        intensity, self.data, event_type = self.acq_proc.plot_signals_scatter()
         
+        # update integrated plot
         integ_intensity = self.integrate(intensity)
         self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
                 size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
-                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90)) # plot scatter
-        
-        if self.calibrate_MIP and self.calib_events%10 :
-            with open(self.path_calib,"w") as csvsavedfile:
-                writerdata=csv.writer(csvsavedfile,delimiter='\t',
-                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                writerdata.writerows(self.mip_calibration)
-        
-        #event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos][0]
-        event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive["AllEventsType"].free_pos][0]
-        print("Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
-        
-        if self.acq_proc.option!="AllEvents":
-            fit_para_key = "MuonFitPara"
-            if event_type!=self.acq_proc.option and not self.live_mode:
-                return
-        else:
-            fit_para_key = "AllEventsMuonFitPara"
-        self.event_type = event_type
-        """
+                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90))
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
         
         if self.acq_proc.option!="AllEvents":
-            if self.live_mode:
-                posi = current_pos+1
-                event_type = self.acq_proc.Class_EventLive["AllEventsType"][posi][0]
-            else:
-                event_type = self.acq_proc.option
             fit_para_key = "MuonFitPara"
         else:
-            event_type = self.acq_proc.Class_EventLive["AllEventsType"][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos][0]
             fit_para_key = "AllEventsMuonFitPara"
         
         print("Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
         self.event_type = event_type
-
-        intensity, self.data = self.acq_proc.plot_signals_scatter()
-        
-        integ_intensity = self.integrate(intensity)
-        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
-                size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
-                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90)) # plot scatter
         
         # channel histogram
         self.img.setImage(self.data.reshape(self.acq_proc.num_sensors_enabled,1))      # affiche histogramme channel
@@ -296,20 +266,14 @@ class LiveWindow(QtGui.QMainWindow):
                           "brush": pt_colour["linear"](intensity[:],maxi=0,mini=90) } )
                 
         if event_type=="Muon":
-            #print("Drawing the fit!!!!!!!!!!!!!")
-            if self.live_mode: posi = current_pos+1
-            else: posi = current_pos
-            """print("self.acq_proc.Class_EventLive[fit_para_key]=",self.acq_proc.Class_EventLive[fit_para_key])
-            print("fit_para_key=",fit_para_key)
-            print("posi=",posi)
-            print("self.acq_proc.Class_EventLive[fit_para_key][posi]=",self.acq_proc.Class_EventLive[fit_para_key][posi])
-            print("self.acq_proc.Class_EventLive[fit_para_key][posi][0]=",self.acq_proc.Class_EventLive[fit_para_key][posi][0])"""
-            reg_y = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_y']
-            reg_z = self.acq_proc.Class_EventLive[fit_para_key][posi][0]['reg_z']
+            if self.live_mode:
+                reg_y = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_y']
+                reg_z = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_z']
+            else:
+                reg_y = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_y']
+                reg_z = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_z']
             self.droite.setData(reg_y,reg_z)
             if self.Auto : self.Auto.set_data(line=(reg_y[:],reg_z[:]))
-        elif self.acq_proc.option == "Muon":
-            pass
         else:
             self.droite.setData([0],[0])     # resets linear fit to nothing
             if self.Auto : self.Auto.set_data(line=([0],[0]))
@@ -337,12 +301,6 @@ class LiveWindow(QtGui.QMainWindow):
         else:
             self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
         self.ui.plt3d.items=self.view3d.w.items
-        
-        if self.calibrate_MIP and self.calib_events%10 :
-            with open(self.path_calib,"w") as csvsavedfile:
-                writerdata=csv.writer(csvsavedfile,delimiter='\t',
-                        quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                writerdata.writerows(self.mip_calibration)
         
         self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
         
@@ -384,8 +342,13 @@ class LiveWindow(QtGui.QMainWindow):
         if os.path.exists(self.path_calib):
             self.mip_calibration = [x[0] for x in np.genfromtxt(self.path_calib)]
 
-        # CLASSIFY EACH DATA ON A DICTIONNARY
     def fill_dico(self):      # class data for each click
+        # 1) apply trigger decision
+        # 2) Classify events into the categories
+        # 3) Update the plots which are always being filled,
+        # no matter if we are in live or in pause mode except integrated signal (done in update_plot)
+        # --> angular distribution of muons, frequency histogram
+        # 4) fill the csv file with MIP calibration
         self.acq_proc.fetch_data() # get data from pipe
         current_pos=self.acq_proc.data.curr_pos # current position
         if(self.acq_proc.data.curr_pos!=0 and current_pos!=self.sp): # avoid copy
@@ -422,6 +385,7 @@ class LiveWindow(QtGui.QMainWindow):
                     if len(self.vsampled["freq"]) > 10000 :
                         self.vsampled["freq"] = self.vsampled["freq"][10:]
             
+            # Classify the event
             self.acq_proc.Class_EventLive = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
             self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
             self.event_seperete=self.dico_live.event_id() # event's id 
@@ -436,17 +400,26 @@ class LiveWindow(QtGui.QMainWindow):
                     #print("m=",slope,"theta=",0)
                 if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
             
+            # write the mip calibration CSV file
+            if self.calibrate_MIP and self.calib_events%self.calibration_CSV_write_frequency :
+                with open(self.path_calib,"w") as csvsavedfile:
+                    writerdata=csv.writer(csvsavedfile,delimiter='\t',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    writerdata.writerows(self.mip_calibration)
+            
             # update of the angle histogram
             self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 18))   # data histogram
             self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
             if self.Auto : self.Auto.set_data(hist=(self.x,self.y))
             
+            # update frequency plot
             self.FreqHist.setData(
                 [x[0] for x in self.vsampled["freq"]],
                 [x[1] for x in self.vsampled["freq"]],
                 stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
             if self.Auto : self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
             
+            # update number of events per category
             self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
                                 self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['Disintegration'].len(),self.acq_proc.Class_EventLive['HighEnergyElectron'].len()]
             print(self.acq_proc.Class_EventLive['AllEvents'].len())

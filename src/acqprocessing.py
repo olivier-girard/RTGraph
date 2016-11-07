@@ -153,23 +153,35 @@ class AcqProcessing:
     #SCATTER PLOT 
     def plot_signals_scatter(self):
         #renvoie les donnees necessaire au scatter plot
-        # les intensités, les couleurs, et les donnees 
-        # difference entre data et intensity ---> taille et intensity=log(data)
-        #
-        colors=[]
+        # les intensités, et les donnees 
+        # difference entre data et intensity : intensity is normalized data
+        
+        event_type = None
         if(self.lastpos==True): # LIVE
+            # Get live data
             data = self.Class_EventLive[self.option].get_partial()# last value
             self.Class_EventLive[self.option].free_pos=self.Class_EventLive[self.option].curr_pos-1
+            # Get event type
+            if self.option != "AllEvents":
+                event_type = self.option
+            else:
+                event_type = self.Class_EventLive["AllEventsType"].get_partial()[0]
         else:   # PAUSE
+            # Get past data from the ringbuffer2D 
             data = self.Class_EventLive[self.option][self.Class_EventLive[self.option].free_pos]
+            # Get event type
+            if self.option != "AllEvents":
+                event_type = self.option
+            else:
+                event_type = self.Class_EventLive["AllEventsType"][self.Class_EventLive[self.option].free_pos]
+        
         if(len(data)!=len(self.sensor_ids)):
-            log.warning("The geometry file don't fit with data length")
+            log.warning("The geometry file doesn't fit with data length")
             self.sp.stop()
             return False
         intensity = data/self.calibration_all_channels['normalization']
-        #intensity = np.log(intensity+1) # commented: we want to return intensity as proportional to the signal
         
-        return intensity, data 
+        return intensity, data, event_type
     
     #PROCESS DATA 
     def plot_signals_map(self):   
