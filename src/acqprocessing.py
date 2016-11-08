@@ -25,7 +25,7 @@ class AcqProcessing:
         self.num_uplinks = 8
         self.num_channels_per_uplinks = 64
         self.MAX_adc = 4095
-        self.num_integrations = 100
+        self.buffer_size = 100
         self.integrate = False # no integration mode
         self.queue = multiprocessing.Queue()
         self.sp = None # subprocess
@@ -247,41 +247,41 @@ class AcqProcessing:
 
 ####### BUFFERS #################
     def reset_buffers(self):
-        self.data = RingBuffer2D(self.num_integrations,           # just data 
+        self.data = RingBuffer2D(self.buffer_size,           # just data 
                                     cols=self.num_sensors_enabled)
-        self.time = RingBuffer2D(self.num_integrations, cols=1) 
-        self.evNumber = RingBuffer2D(self.num_integrations, cols=1) 
-        self.data_referenced=RingBuffer2D(self.num_integrations,    # data more time and num_event
+        self.time = RingBuffer2D(self.buffer_size, cols=1) 
+        self.evNumber = RingBuffer2D(self.buffer_size, cols=1) 
+        self.data_referenced=RingBuffer2D(self.buffer_size,    # data more time and num_event
                                     cols=self.num_sensors_enabled+2)
-        self.data_option=RingBuffer2D(self.num_integrations,         # data = All or Muon or Electron ....
+        self.data_option=RingBuffer2D(self.buffer_size,         # data = All or Muon or Electron ....
                                     cols=self.num_sensors_enabled+2,dtype=float)
         while not self.queue.empty():
             self.queue.get()
         log.info("Buffers cleared") 
         
     def reset_event_classification_live(self):
-        self.Event_Muon = RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float)
-        self.Event_muon_FitPara = RingBuffer2D(self.num_integrations,cols=1,dtype=object)
-        self.All_Events_muon_FitPara = RingBuffer2D(self.num_integrations,cols=1,dtype=object)
-        self.Event_HighE_Electron = RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float)                                             
-        self.Event_Electron = RingBuffer2D(self.num_integrations,
+        self.Event_Muon = RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float)
+        self.Event_muon_FitPara = RingBuffer2D(self.buffer_size,cols=1,dtype=object)
+        self.All_Events_muon_FitPara = RingBuffer2D(self.buffer_size,cols=1,dtype=object)
+        self.Event_HighE_Electron = RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float)                                             
+        self.Event_Electron = RingBuffer2D(self.buffer_size,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.Event_Muon_decay = RingBuffer2D(self.num_integrations,
+        self.Event_Muon_decay = RingBuffer2D(self.buffer_size,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.All_Events = RingBuffer2D(self.num_integrations,
+        self.All_Events = RingBuffer2D(self.buffer_size,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.All_Events_type = RingBuffer2D(self.num_integrations,
+        self.All_Events_type = RingBuffer2D(self.buffer_size,
                                     cols=1,dtype=object)
         self.Class_EventLive = {'Muon':(self.Event_Muon),'MuonFitPara':self.Event_muon_FitPara,'Electron':(self.Event_Electron),
                                     'Disintegration':(self.Event_Muon_decay),'AllEvents':(self.All_Events),
                                     'HighEnergyElectron':(self.Event_HighE_Electron),'AllEventsType':(self.All_Events_type),
                                     'AllEventsMuonFitPara':(self.All_Events_muon_FitPara)}
-        log.info("Buffers live cleared size {}".format(self.num_integrations)) 
+        log.info("Buffers live cleared size {}".format(self.buffer_size)) 
     
     def reset_event_classification_saved(self,lenght):
         self.Event_Muon_s = RingBuffer2D(lenght,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.Event_HighE_Electron_s = RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float)                                                
+        self.Event_HighE_Electron_s = RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float)                                                
         self.Event_Electron_s= RingBuffer2D(lenght,
                                     cols=self.num_sensors_enabled,dtype=float)
         self.Event_Muon_decay_s=RingBuffer2D(lenght,
@@ -297,7 +297,7 @@ class AcqProcessing:
 ################################
 
     def reset_event(self,key='AllEvents'):
-        self.Class_EventLive[key]=RingBuffer2D(self.num_integrations,cols=self.num_sensors_enabled,dtype=float) 
+        self.Class_EventLive[key]=RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float) 
         
         
     #LOAD PEDESTAL AND GAIN FILES 
@@ -352,7 +352,7 @@ class AcqProcessing:
             log.info("Number of sensors enabled changed to {}".format(num_sensors))
             self.reset_buffers()
             self.reset_event_classification_live()
-            self.reset_event_classification_saved(self.num_integrations)
+            self.reset_event_classification_saved(self.buffer_size)
         
         # charge un array de pedestal
         if self.all_pedestal:

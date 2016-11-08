@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1348</width>
+    <height>946</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Graph Window</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/*
+    Android Material Dark
+	COLOR_DARK     = #212121 Grey 900
+	COLOR_MEDIUM   = #424242 Grey 800
+	COLOR_MEDLIGHT = #757575 Grey 600
+	COLOR_LIGHT    = #DDDDDD White
+	COLOR_ACCENT   = #3F51B5 Indigo 500
+*/
+
+* {
+	background:qlineargradient(spread:pad, x1:0.517, y1:0.25, x2:1, y2:1, stop:0.211207 rgba(0, 0, 0, 255), stop:0.456897 rgba(39, 103, 106, 255), stop:1 rgba(255, 255, 255, 255));
+	color: #DDDDDD;
+	border: 1px solid #757575;
+}
+
+QWidget::item:selected {
+	background: #3F51B5;
+}
+
+QCheckBox, QRadioButton {
+	border: none;
+}
+
+QRadioButton::indicator, QCheckBox::indicator {
+	width: 13px;
+	height: 13px;
+}
+
+QRadioButton::indicator::unchecked, QCheckBox::indicator::unchecked {
+	border: 1px solid #757575;
+	background: none;
+}
+
+QRadioButton::indicator:unchecked:hover, QCheckBox::indicator:unchecked:hover {
+	border: 1px solid #DDDDDD;
+}
+
+QRadioButton::indicator::checked, QCheckBox::indicator::checked {
+	border: 1px solid #757575;
+	background: #757575;
+}
+
+QRadioButton::indicator:checked:hover, QCheckBox::indicator:checked:hover {
+	border: 1px solid #DDDDDD;
+	background: #DDDDDD;
+}
+
+QGroupBox {
+	margin-top: 6px;
+}
+
+QGroupBox::title {
+	top: -7px;
+	left: 7px;
+}
+
+QScrollBar {
+	border: 1px solid #757575;
+	background: #212121;
+}
+
+QScrollBar:horizontal {
+	height: 15px;
+	margin: 0px 0px 0px 32px;
+}
+
+QScrollBar:vertical {
+	width: 15px;
+	margin: 32px 0px 0px 0px;
+}
+
+QScrollBar::handle {
+	background: #424242;
+	border: 1px solid #757575;
+}
+
+QScrollBar::handle:horizontal {
+	border-width: 0px 1px 0px 1px;
+}
+
+QScrollBar::handle:vertical {
+	border-width: 1px 0px 1px 0px;
+}
+
+QScrollBar::handle:horizontal {
+	min-width: 20px;
+}
+
+QScrollBar::handle:vertical {
+	min-height: 20px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+	background:#424242;
+	border: 1px solid #757575;
+	subcontrol-origin: margin;
+}
+
+QScrollBar::add-line {
+	position: absolute;
+}
+
+QScrollBar::add-line:horizontal {
+	width: 15px;
+	subcontrol-position: left;
+	left: 15px;
+}
+
+QScrollBar::add-line:vertical {
+	height: 15px;
+	subcontrol-position: top;
+	top: 15px;
+}
+
+QScrollBar::sub-line:horizontal {
+	width: 15px;
+	subcontrol-position: top left;
+}
+
+QScrollBar::sub-line:vertical {
+	height: 15px;
+	subcontrol-position: top;
+}
+
+QScrollBar:left-arrow, QScrollBar::right-arrow, QScrollBar::up-arrow, QScrollBar::down-arrow {
+	border: 1px solid #757575;
+	width: 3px;
+	height: 3px;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+	background: none;
+}
+
+QAbstractButton:hover {
+	background: #424242;
+}
+
+QAbstractButton:pressed {
+	background: #757575;
+}
+
+QAbstractItemView {
+	show-decoration-selected: 1;
+	selection-background-color: #3F51B5;
+	selection-color: #DDDDDD;
+	alternate-background-color: #424242;
+}
+
+QHeaderView {
+	border: 1px solid #757575;
+}
+
+QHeaderView::section {
+	background: #212121;
+	border: 1px solid #757575;
+	padding: 4px;
+}
+
+QHeaderView::section:selected, QHeaderView::section::checked {
+	background: #424242;
+}
+
+QTableView {
+	gridline-color: #757575;
+}
+
+QTabBar {
+	margin-left: 2px;
+}
+
+QTabBar::tab {
+	border-radius: 0px;
+	padding: 4px;
+	margin: 4px;
+}
+
+QTabBar::tab:selected {
+	background: #424242;
+}
+
+QComboBox::down-arrow {
+	border: 1px solid #757575;
+	background: #424242;
+}
+
+QComboBox::drop-down {
+	border: 1px solid #757575;
+	background: #424242;
+}
+
+QComboBox::down-arrow {
+	width: 3px;
+	height: 3px;
+	border: 1px solid #757575;
+}
+
+QAbstractSpinBox {
+	padding-right: 15px;
+}
+
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+	border: 1px solid #757575;
+	background: #424242;
+	subcontrol-origin: border;
+}
+
+QAbstractSpinBox::up-arrow, QAbstractSpinBox::down-arrow {
+	width: 3px;
+	height: 3px;
+	border: 1px solid #757575;
+}
+
+QSlider {
+	border: none;
+}
+
+QSlider::groove:horizontal {
+	height: 5px;
+	margin: 4px 0px 4px 0px;
+}
+
+QSlider::groove:vertical {
+	width: 5px;
+	margin: 0px 4px 0px 4px;
+}
+
+QSlider::handle {
+	border: 1px solid #757575;
+	background: #424242;
+}
+
+QSlider::handle:horizontal {
+	width: 15px;
+	margin: -4px 0px -4px 0px;
+}
+
+QSlider::handle:vertical {
+	height: 15px;
+	margin: 0px -4px 0px -4px;
+}
+
+QSlider::add-page:vertical, QSlider::sub-page:horizontal {
+	background: #3F51B5;
+}
+
+QSlider::sub-page:vertical, QSlider::add-page:horizontal {
+	background: #424242;
+}
+
+QLabel {
+	border: none;
+}
+
+QProgressBar {
+	text-align: center;
+}
+
+QProgressBar::chunk {
+	width: 1px;
+	background-color: #3F51B5;
+}
+
+QMenu::separator {
+	background: #424242;
+}
+
+QStatusBar {
+	border: 1px;
+	color: #3F51B5;
+}</string>
+  </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="autoFillBackground">
+    <bool>false</bool>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="2">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QLabel" name="EnergieDep">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>  0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+        </property>
+        <property name="text">
+         <string>Energy deposit:  </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+        </property>
+        <property name="text">
+         <string>Event type:  </string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="EventType">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>  NotClassified</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="2">
+     <widget class="QTabWidget" name="display">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>1330</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="font">
+       <font>
+        <family>URW Bookman L</family>
+        <pointsize>20</pointsize>
+        <weight>75</weight>
+        <italic>true</italic>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QTabWidget::tab-bar {
+left:0px;
+}
+/* Style the tab using the tab sub-control. Note that it reads QTabBar _not_ QTabWidget */
+
+QTabBar::tab:selected {
+border-color: rgb(77, 77, 77);
+}
+
+QTabWidget::pane { /* The tab widget frame */
+border-top: 5px solid qlineargradient(spread:pad, x1:0.176, y1:1, x2:0.797, y2:1, stop:0 rgba(136, 106, 22, 255), stop:0.225 rgba(166, 140, 41, 255), stop:0.285 rgba(204, 181, 74, 255), stop:0.345 rgba(235, 219, 102, 255), stop:0.415 rgba(245, 236, 112, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.57 rgba(187, 156, 51, 255), stop:0.635 rgba(168, 142, 42, 255), stop:0.695 rgba(202, 174, 68, 255), stop:0.75 rgba(218, 202, 86, 255), stop:0.815 rgba(208, 187, 73, 255), stop:0.88 rgba(187, 156, 51, 255), stop:1 rgba(137, 108, 26, 255));
+border-bottom:5px solid qlineargradient(spread:pad, x1:0.176, y1:1, x2:0.797, y2:1, stop:0 rgba(136, 106, 22, 255), stop:0.225 rgba(166, 140, 41, 255), stop:0.285 rgba(204, 181, 74, 255), stop:0.345 rgba(235, 219, 102, 255), stop:0.415 rgba(245, 236, 112, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.57 rgba(187, 156, 51, 255), stop:0.635 rgba(168, 142, 42, 255), stop:0.695 rgba(202, 174, 68, 255), stop:0.75 rgba(218, 202, 86, 255), stop:0.815 rgba(208, 187, 73, 255), stop:0.88 rgba(187, 156, 51, 255), stop:1 rgba(137, 108, 26, 255));
+border-left:5px solid qlineargradient(spread:pad, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(136, 106, 22, 255), stop:0.225 rgba(166, 140, 41, 255), stop:0.285 rgba(204, 181, 74, 255), stop:0.345 rgba(235, 219, 102, 255), stop:0.415 rgba(245, 236, 112, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.57 rgba(187, 156, 51, 255), stop:0.635 rgba(168, 142, 42, 255), stop:0.695 rgba(202, 174, 68, 255), stop:0.75 rgba(218, 202, 86, 255), stop:0.815 rgba(208, 187, 73, 255), stop:0.88 rgba(187, 156, 51, 255), stop:1 rgba(137, 108, 26, 255));
+border-right:5px solid qlineargradient(spread:pad, x1:1, y1:0, x2:1, y2:1, stop:0 rgba(136, 106, 22, 255), stop:0.225 rgba(166, 140, 41, 255), stop:0.285 rgba(204, 181, 74, 255), stop:0.345 rgba(235, 219, 102, 255), stop:0.415 rgba(245, 236, 112, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.57 rgba(187, 156, 51, 255), stop:0.635 rgba(168, 142, 42, 255), stop:0.695 rgba(202, 174, 68, 255), stop:0.75 rgba(218, 202, 86, 255), stop:0.815 rgba(208, 187, 73, 255), stop:0.88 rgba(187, 156, 51, 255), stop:1 rgba(137, 108, 26, 255)) ;
+}
+
+
+QTabBar::tab {
+background:qconicalgradient(cx:0, cy:0, angle:135, stop:0 rgba(0, 148, 114, 69), stop:0.375 rgba(0, 0, 0, 255), stop:0.452889 rgba(71, 72, 0, 145), stop:0.466983 rgba(1, 128, 99, 228), stop:0.503158 rgba(72, 69, 20, 130), stop:0.505423 rgba(72, 61, 20, 130), stop:0.55 rgba(72, 72, 0, 255), stop:0.668103 rgba(0, 0, 0, 255), stop:0.685345 rgba(72, 72, 0, 69), stop:0.905172 rgba(72, 57, 0, 130));
+border: 3px solid #C4C4C3;
+border-bottom-color: #C2C7CB; /* same as the pane color */
+border-top-right-radius: 40px;
+min-width: 33ex;
+padding: 10px;
+color:rgb(0, 0, 0);
+}</string>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>true</bool>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tracker">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>1318</width>
+         <height>0</height>
+        </size>
+       </property>
+       <attribute name="title">
+        <string>Event display</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_5">
+          <item row="0" column="0">
+           <widget class="GraphicsLayoutWidget" name="plttracker">
+            <property name="minimumSize">
+             <size>
+              <width>1040</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="histogram">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>Angle</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_7">
+          <item row="0" column="0">
+           <widget class="GraphicsLayoutWidget" name="plthistogram"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="frequency">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>Frequency</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_9">
+          <item row="0" column="0">
+           <widget class="GraphicsLayoutWidget" name="pltfrequency"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="Integration_tab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <attribute name="title">
+        <string>Integration</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_3">
+          <item row="0" column="0">
+           <widget class="GraphicsLayoutWidget" name="integview"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <action name="actionAll_pannel">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>All pannel</string>
+   </property>
+  </action>
+  <action name="actionHistogram">
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+  </action>
+  <action name="actionTracker">
+   <property name="text">
+    <string>Tracker</string>
+   </property>
+  </action>
+  <action name="actionChannels">
+   <property name="text">
+    <string>Channels</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>URW Bookman L</family>
+     <pointsize>12</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+  </action>
+  <action name="actionAll">
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GraphicsLayoutWidget</class>
+   <extends>QGraphicsView</extends>
+   <header location="global">pyqtgraph</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
