@@ -12,6 +12,7 @@ import os
 import math
 import csv
 import select
+import functools
 
 import logging as log
 import logging.handlers
@@ -25,7 +26,6 @@ from AutoWindow import *
 
 from acqprocessing import AcqProcessing
 from Classify import Classify
-from Visual3d import View3D
 
 from triggers import triggers
 from configurePlots import pt_size, pt_colour
@@ -47,7 +47,7 @@ class AutoWindow(QtGui.QMainWindow):
         self.ui = Ui_AutoWindow()                                 #
         self.ui.setupUi(self)
         
-        self.Hist=pg.PlotCurveItem()                                                # histogramme 
+        self.AngleHist=pg.PlotCurveItem()                                                # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                              # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))            # scatter plot
         self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))    # track fit
@@ -62,7 +62,7 @@ class AutoWindow(QtGui.QMainWindow):
         self.curstep = 0
         self.steps = [ 
                         [self.scatt,self.droite],
-                        [self.Hist],
+                        [self.AngleHist],
                         [self.FreqHist]
                         ]
         self.curdisplay.addItem(self.steps[0][0])
@@ -99,10 +99,15 @@ class AutoWindow(QtGui.QMainWindow):
         if self.linedata is not None and self.curstep==0:
             self.droite.setData(*self.linedata)
         if self.hdata is not None and self.curstep==1:    
-            self.Hist.setData(*self.hdata,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
+            self.AngleHist.setData(*self.hdata,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
         if self.fdata is not None and self.curstep==2:
             self.FreqHist.setData(*self.fdata,stepMode=False, fillLevel=0, brush=(0, 0, 255, 80))
-
+    
+    def closeEvent(self, event):
+        log.info('Auto Window closed')
+        event.accept()
+        self.window_closed = True
+    
 # class to handle the graphs that will be displayed
 class GraphWindow(QtGui.QMainWindow):
     
@@ -120,6 +125,10 @@ class GraphWindow(QtGui.QMainWindow):
         self.tsampled = []                              ## sampling time
         self.vsampled = { "freq" : [], "nevt" : [] }    ## sampled variables
         self.sample_dt = 5                              ## sampling interval
+        
+        #trigger
+        self.trigger_dec = True
+        self.trigger_type = "nlayers"
         
         # arrays with all information about the events,
         # classified in five categories
@@ -142,7 +151,7 @@ class GraphWindow(QtGui.QMainWindow):
     # plot CONFIGURATION
     def configure_plot(self):
         # object plot 2D
-        self.Hist=pg.PlotCurveItem()                                        # histogramme 
+        self.AngleHist=pg.PlotCurveItem()                                        # histogramme 
         self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
         self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
         self.integ = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot for inegration
@@ -151,15 +160,19 @@ class GraphWindow(QtGui.QMainWindow):
         self.pb_plates=[None]*5       # Pb plates
         self.pb_plates_int=[None]*5     #Pb plates for integration window
         # Graphiques
-        self.tracker = self.ui.plttracker.addPlot(title ="Tracker")
+        self.tracker = self.ui.plttracker.addPlot(title ="Tracker view")
         self.tracker.addItem(self.droite)
         self.tracker.addItem(self.scatt)
-        self.histogram = self.ui.plthistogram.addPlot(title = 'Angle Incidencie')
-        self.histogram.addItem(self.Hist)
-        self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
+        self.angle = self.ui.plthistogram.addPlot(title = 'Incidence angle')
+        self.angle.addItem(self.AngleHist)
+        self.frequency = self.ui.pltfrequency.addPlot(title="Event frequency")
         self.frequency.addItem(self.FreqHist)
-        self.integration_view = self.ui.integview.addPlot(title ="Integration")
+        self.integration_view = self.ui.integview.addPlot(title ="Integrated signal")
         self.integration_view.addItem(self.integ)
+        # bins for the angle histogram
+        self.angle_nbins = 18
+        self.angle_low = -90
+        self.angle_high = 90
         
     def setRange2Dplot(self):
         # set 2D plot range
@@ -179,175 +192,15 @@ class GraphWindow(QtGui.QMainWindow):
     def configure_timers(self):
         self.timer_plot_update = QtCore.QTimer(self)
         self.timer_plot_update.timeout.connect(self.update_plot)  # update plot a chaque click
-
-class LiveWindow(QtGui.QMainWindow):
     
-    def __init__(self, acq_proc):
-        QtGui.QMainWindow.__init__(self)      #     objet fenetre live  #####
-        self.ui = Ui_MainWindow()      #####
-        self.ui.setupUi(self)    #####
-        
-        # Know about an instance of acquisition/processing code
-        # to forward GUI events
-        self.acq_proc = acq_proc    # object acquisition  #####
-        
-        self.timer_plot_update = None  #####
-        self.timer_freq_update = None  #####
-        self.live_mode = True   # live mode set to True. Set to False when we push the pause button
-        self.start_time = time.time()  #####
-        self.tsampled = []                              ## sampling time  #####
-        self.vsampled = { "freq" : [], "nevt" : [] }    ## sampled variables  #####
-        self.sample_dt = 5                              ## sampling interval  #####
-        
-        self.sp = None
-        self.nb_events_per_class=[0]*5             #####                        #  nbr de categorie d'evenement differents  ex: All,Muon,Electron.....
-        self.event_name=['AllEvents','Muon','Electron','Disintegration','HighEnergyElectron']     #####   # nom des categories
-        self.nbr_saving=[0]*5                                            # nbr de sauvegarde pour chaque categorie
-        self.event_seperete=[[0]]*5  #####
-        self.energie_tot_seperete=[[0]]*5  #####
-        self.play_cam=1                                                  # booleen camera 3d
-        
-        #trigger
-        self.trigger_dec = True
-        self.trigger_type = "nlayers"
-        
-        ## For mip calibration
-        self.path_calib = "./mip_calibration.csv"
-        self.calibrate_MIP = True
-        self.calibration_CSV_write_frequency = 10
-        self.mip_calibration = []
-        self.calib_events = 0
-        
-        # for signal integration  #####
-        self.int_events = 0  #####
-        self.int_intensities = []  #####
-        
-        # angle of muon tracks  #####
-        self.theta = []  #####
-        
-        # configures plots
-        self.configure_plot()  #####
-        self.slope_conversion_factor = 1    # conversion of slope in 2D plot and in reality  #####
-        #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
-        
-        self.Auto = None
-
-
-        # plot CONFIGURATION
-    def configure_plot(self):
-        # object plot 2D
-        self.Hist=pg.PlotCurveItem()                                        # histogramme 
-        self.FreqHist=pg.PlotCurveItem(stepMode=False)                      # histogramme
-        self.scatt = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot
-        self.integ = pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))    # scatter plot for inegration
-        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color='g',width=3))                            # track fit
-        self.module=[pg.GraphItem()]*400
-        self.pb_plates=[None]*5       # Pb plates
-        self.pb_plates_int=[None]*5     #Pb plates for integration window
-        # Graphiques
-        self.tracker = self.ui.plttracker.addPlot(title ="Tracker")
-        self.tracker.addItem(self.droite)
-        self.tracker.addItem(self.scatt)
-        self.histogram = self.ui.plthistogram.addPlot(title = 'Angle Incidencie')
-        self.histogram.addItem(self.Hist)
-        self.frequency = self.ui.pltfrequency.addPlot(title="Event Frequency")
-        self.frequency.addItem(self.FreqHist)
-        self.integration_view = self.ui.integview.addPlot(title ="Integration")
-        self.integration_view.addItem(self.integ)
-        
-    def setRange2Dplot(self):
-        # set 2D plot range
-        spacing_x = np.unique(self.acq_proc.x_coords)[1] - np.unique(self.acq_proc.x_coords)[0]
-        minx = np.unique(self.acq_proc.x_coords)[0]
-        maxx = np.unique(self.acq_proc.x_coords)[-1]
-        spacing_y = np.unique(self.acq_proc.y_coords)[1] - np.unique(self.acq_proc.y_coords)[0]
-        miny = np.unique(self.acq_proc.y_coords)[0]
-        maxy = np.unique(self.acq_proc.y_coords)[-1]
-        self.scatt.getViewBox().setXRange(minx-0.5*spacing_x, maxx+0.5*spacing_x, padding=None)
-        self.scatt.getViewBox().setYRange(miny-0.5*spacing_y, maxy+0.5*spacing_y, padding=None)
-        self.scatt.getViewBox().disableAutoRange()
-        self.integ.getViewBox().setXRange(minx-0.5*spacing_x, maxx+0.5*spacing_x, padding=None)
-        self.integ.getViewBox().setYRange(miny-0.5*spacing_y, maxy+0.5*spacing_y, padding=None)
-        self.integ.getViewBox().disableAutoRange()
-        
-    def configure_timers(self):
-        self.timer_plot_update = QtCore.QTimer(self)
-        self.timer_acquisition = QtCore.QTimer(self)
-        self.timer_acquisition.timeout.connect(self.fill_dico)    # acquisition a chaque click d'horloge
-        self.timer_plot_update.timeout.connect(self.update_plot)  # update plot a chaque click
-        
-        #TIMER choose the event wanted display on the plot
-    def timer(self,cmd="right"):         ## change data array position
-        if(cmd=="left" and self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos>0 ):
-            self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos-=1
-        if(cmd=="right" and self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos<self.acq_proc.Class_EventLive[self.acq_proc.option].len()-1):
-            self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos+=1
-        
-        #UPDATE PLOT    plot 1*3d, 1*2d, 2*histogrammes,  
     def update_plot(self):
+        # this method is redefined completely in the children classes
+        print("update_plot must be redefined!")
         
-        if self.live_mode:
-            if not self.trigger_dec:
-                return
-            if self.acq_proc.evNumber.get_partial()[0] == self.acq_proc.last_event_plotted:
-                # the event has already been plotted
-                return
-                
-        current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
-        if( self.acq_proc.plot_signals_scatter()==False ):                         # mistake between sensorenable and datapipe lenght
-            self.timer_plot_update.stop()
-            return
-        
-        intensity, self.data, event_type = self.acq_proc.plot_signals_scatter()
-        
-        # update integrated plot
-        integ_intensity = self.integrate(intensity)
-        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
-                size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
-                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90))
-        
-        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
-        
-        if self.acq_proc.option!="AllEvents":
-            fit_para_key = "MuonFitPara"
-        else:
-            fit_para_key = "AllEventsMuonFitPara"
-        
-        print("Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
-        self.event_type = event_type
-        
-        # 2D scatter plot
-        maxintensity = np.max(intensity)
-        if(maxintensity!=0):
-            # point size and colour are defined in file configurePlots.py
-            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
-                size=pt_size["linear"](intensity,maxi=1,mini=0.1,saturate_at=0.5),
-                brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
-            if self.Auto : self.Auto.set_data(
-                scatt = { "x"  : self.acq_proc.x_coords[:], "y":self.acq_proc.y_coords[:],
-                          "size" : pt_size["linear"](intensity[:],maxi=1,mini=0.1,saturate_at=0.5),
-                          "brush": pt_colour["linear"](intensity[:],maxi=0,mini=90) } )
-                
-        if event_type=="Muon":
-            if self.live_mode:
-                reg_y = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_y']
-                reg_z = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_z']
-            else:
-                reg_y = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_y']
-                reg_z = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_z']
-            self.droite.setData(reg_y,reg_z)
-            if self.Auto : self.Auto.set_data(line=(reg_y[:],reg_z[:]))
-        else:
-            self.droite.setData([0],[0])     # resets linear fit to nothing
-            if self.Auto : self.Auto.set_data(line=([0],[0]))
-        
-        # checks if autorange is on: if yes, disable it
-        if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
-            self.setRange2Dplot()
-        
-        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
-        
-
+    def timer(self,cmd="right"): # when you click on left or right to browse among the events in the buffer
+        # this method must be redefined completely in the children classes
+        print("timer must be redefined!")
+    
     def integrate(self,intensity) :
         
         self.int_events += 1
@@ -364,151 +217,8 @@ class LiveWindow(QtGui.QMainWindow):
         self.int_intensities = int_intensity
         
         return np.array(int_intensity)
-
-    def calibrate(self,data) : 
-        self.calib_events += 1
-        if len(self.mip_calibration) == 0 :
-            for ni in data :
-                if ni[0] > 0 : self.mip_calibration.append( (ni[0], 1) )
-                else : self.mip_calibration.append( (0, 0) )
-            return
-            
-        newcalib = []    
-        for ni,i in zip(data,self.mip_calibration) :
-            oldv, nevts = i
-            if ni[0] > 0 : newcalib.append( ( (nevts*oldv + ni[0])/(nevts+1), nevts+1 ) )
-            else : newcalib.append(i)
-                    
-        self.mip_calibration = newcalib
-
-    def load_calibration(self) :
-        if os.path.exists(self.path_calib):
-            self.mip_calibration = [x[0] for x in np.genfromtxt(self.path_calib)]
-
-    def fill_dico(self):      # class data for each click
-        # 1) apply trigger decision
-        # 2) Classify events into the categories
-        # 3) Update the plots which are always being filled,
-        # no matter if we are in live or in pause mode except integrated signal (done in update_plot)
-        # --> angular distribution of muons, frequency histogram
-        # 4) fill the csv file with MIP calibration
-        self.acq_proc.fetch_data() # get data from pipe
-        current_pos=self.acq_proc.data.curr_pos # current position
-        if(self.acq_proc.data.curr_pos!=0 and current_pos!=self.sp): # avoid copy
-            self.sp=current_pos
-            
-            data=self.acq_proc.plot_signals_map()   # give process data in p.e or MIP (without noise)
-            
-            ## Trigger implementation
-            self.trigger_dec = True
-            if self.trigger_type in triggers : 
-                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(data), layers = 5)
-                if not self.trigger_dec : return
-            ## continuing what was there before
-            
-            # Make a sound
-            os.system("echo -e '\a'")#beep -f 555 -l 460")
-            
-            ## Frequqncy plot
-            nt = time.time() - self.start_time
-            if len(self.tsampled) == 0 :
-                self.tsampled.append( nt )
-                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
-                self.vsampled["freq"].append( ( 0., 0. ) )
-                
-            dt = nt - self.tsampled[-1]
-            if dt > self.sample_dt :
-                dn = self.acq_proc.Class_EventLive['AllEvents'].len() - self.vsampled["nevt"][-1]
-                self.tsampled.append( nt )
-                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
-                
-                ## Only for dn > 0 to avoid negative frequencies when time resets
-                if dn > 0 : 
-                    self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
-                    if len(self.vsampled["freq"]) > 10000 :
-                        self.vsampled["freq"] = self.vsampled["freq"][10:]
-            
-            # Classify the event
-            self.acq_proc.Class_EventLive = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
-            self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
-            self.event_seperete=self.dico_live.event_id() # event's id 
-            
-            if self.dico_live.last_event_type == "Muon":
-                slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
-                if slope!=None:
-                    self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
-                    #print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
-                else:
-                    self.theta.append(0)
-                    #print("m=",slope,"theta=",0)
-                if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
-            
-            # write the mip calibration CSV file
-            if self.calibrate_MIP and self.calib_events%self.calibration_CSV_write_frequency :
-                with open(self.path_calib,"w") as csvsavedfile:
-                    writerdata=csv.writer(csvsavedfile,delimiter='\t',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                    writerdata.writerows(self.mip_calibration)
-            
-            # update of the angle histogram
-            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-90, 90, 18))   # data histogram
-            self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
-            if self.Auto : self.Auto.set_data(hist=(self.x,self.y))
-            
-            # update frequency plot
-            self.FreqHist.setData(
-                [x[0] for x in self.vsampled["freq"]],
-                [x[1] for x in self.vsampled["freq"]],
-                stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
-            if self.Auto : self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
-            
-            # update number of events per category
-            self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
-                                self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['Disintegration'].len(),self.acq_proc.Class_EventLive['HighEnergyElectron'].len()]
-            print(self.acq_proc.Class_EventLive['AllEvents'].len())
-            for event,nbr in enumerate(self.nb_events_per_class):   # saved when buffer is full
-                if(nbr==self.acq_proc.buffer_size):
-                    key=self.event_name[event]
-                    self.nbr_saving[event]+=1
-                    self.acq_proc.backup_dico_csv(self.path_backupdico,key,save='save') #save live events to a csv file
-     
-    def state_plotAll(self):
-        self.acq_proc.option='AllEvents'  # 0
-        self.option_num=0
-        if(self.acq_proc.Class_EventLive['AllEvents'].len()!=0):
-            self.timer_plot_update.singleShot(2,self.update_plot)
-    def state_plotMuon(self):
-        self.acq_proc.option='Muon'   # 1
-        self.option_num=1
-        if(self.acq_proc.Class_EventLive['Muon'].len()!=0):
-            self.timer_plot_update.singleShot(2,self.update_plot)
-    def state_plotElectron(self):
-        self.acq_proc.option='Electron'  # 2
-        self.option_num=2
-        if(self.acq_proc.Class_EventLive['Electron'].len()!=0):
-            self.timer_plot_update.singleShot(2,self.update_plot)
-    def state_plotDisintegration(self):
-        self.acq_proc.option='Disintegration'  # 3
-        self.option_num=3
-        if(self.acq_proc.Class_EventLive['Disintegration'].len()!=0):
-            self.timer_plot_update.singleShot(2,self.update_plot)
-    def state_plotHighEnergyElectron(self):
-        self.acq_proc.option='HighEnergyElectron'  # 4
-        self.option_num=4
-        if(self.acq_proc.Class_EventLive['HighEnergyElectron'].len()!=0):
-            self.timer_plot_update.singleShot(2,self.update_plot)
-            
-    def rotation(self):
-        if(self.play_cam==0):
-            self.view3d.timer_camera(0)
-            self.view3d.timer_cam.start()
-            self.play_cam=1
-        else:
-            self.view3d.timer_camera(0.2)
-            self.view3d.timer_cam.start()
-            self.play_cam=0
         
-        ## draw sensors on 2d plot
+    ## draw sensors on 2d plot
     def module_2D(self):
         sensor=np.array([self.acq_proc.x_coords,self.acq_proc.y_coords])
         x=0.4;y=0.2
@@ -557,6 +267,240 @@ class LiveWindow(QtGui.QMainWindow):
             plate_list.append(pg.QtGui.QGraphicsRectItem(x_middle-0.5*x_width, y_mid-0.5*y_width, x_width, y_width))
             plate_list[i].setBrush(pg.mkBrush('c'))
         return plate_list
+        
+
+class LiveWindow(GraphWindow):
+    
+    def __init__(self, acq_proc):
+        
+        GraphWindow.__init__(self,acq_proc)
+        
+        self.live_mode = True   # live mode set to True. Set to False when we push the pause button
+        
+        self.sp = None
+        self.nbr_saving=[0]*5                                            # nbr de sauvegarde pour chaque categorie
+        
+        ## For mip calibration
+        self.path_calib = "./mip_calibration.csv"
+        self.calibrate_MIP = True
+        self.calibration_CSV_write_frequency = 10
+        self.mip_calibration = []
+        self.calib_events = 0
+        #if not self.calibrate_MIP : self.load_calibration()    # to load calibration file and "append" it
+        
+        self.Auto = None
+        
+    def configure_timers(self):
+        GraphWindow.configure_timers(self)
+        self.timer_acquisition = QtCore.QTimer(self)
+        self.timer_acquisition.timeout.connect(self.fill_dico)    # acquisition a chaque click d'horloge
+        
+        #TIMER choose the event wanted display on the plot
+    def timer(self,cmd="right"):         ## change data array position
+        if(cmd=="left" and self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos>0 ):
+            self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos-=1
+        if(cmd=="right" and self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos<self.acq_proc.Class_EventLive[self.acq_proc.option].len()-1):
+            self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos+=1
+        
+        #UPDATE PLOT
+    def update_plot(self):
+        
+        if self.live_mode:
+            if not self.trigger_dec:
+                return
+            if self.acq_proc.evNumber.get_partial()[0] == self.acq_proc.last_event_plotted:
+                # the event has already been plotted
+                return
+                
+        current_pos=self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
+        if( self.acq_proc.plot_signals_scatter(self.acq_proc.getLiveEvent)==False ):                         # mistake between sensorenable and datapipe lenght
+            self.timer_plot_update.stop()
+            return
+        
+        intensity, self.data, event_type = self.acq_proc.plot_signals_scatter(self.acq_proc.getLiveEvent)
+        
+        # update integrated plot
+        integ_intensity = self.integrate(intensity)
+        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](integ_intensity,maxi=1,mini=0.01,saturate_at=0.02),
+                brush=pt_colour["linear"](integ_intensity,maxi=0,mini=90))
+        
+        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
+        
+        if self.acq_proc.option!="AllEvents":
+            fit_para_key = "MuonFitPara"
+        else:
+            fit_para_key = "AllEventsMuonFitPara"
+        
+        print("::::LIVE::::\t","Event:",self.acq_proc.evNumber.get_partial()[0],"  Type:",event_type)
+        self.event_type = event_type
+        
+        # 2D scatter plot
+        maxintensity = np.max(intensity)
+        if(maxintensity!=0):
+            # point size and colour are defined in file configurePlots.py
+            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](intensity,maxi=1,mini=0.1,saturate_at=0.5),
+                brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
+            if self.Auto : self.Auto.set_data(
+                scatt = { "x"  : self.acq_proc.x_coords[:], "y":self.acq_proc.y_coords[:],
+                          "size" : pt_size["linear"](intensity[:],maxi=1,mini=0.1,saturate_at=0.5),
+                          "brush": pt_colour["linear"](intensity[:],maxi=0,mini=90) } )
+                
+        if event_type=="Muon":
+            if self.live_mode:
+                reg_y = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_y']
+                reg_z = self.acq_proc.Class_EventLive[fit_para_key].get_partial()[0]['reg_z']
+            else:
+                reg_y = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_y']
+                reg_z = self.acq_proc.Class_EventLive[fit_para_key][current_pos][0]['reg_z']
+            self.droite.setData(reg_y,reg_z)
+            if self.Auto : self.Auto.set_data(line=(reg_y[:],reg_z[:]))
+        else:
+            self.droite.setData([0],[0])     # resets linear fit to nothing
+            if self.Auto : self.Auto.set_data(line=([0],[0]))
+        
+        # checks if autorange is on: if yes, disable it
+        if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
+            self.setRange2Dplot()
+        
+        self.acq_proc.last_event_plotted = self.acq_proc.evNumber.get_partial()[0]     # mark this event as already plotted and waits for the next event
+
+    def calibrate(self,data) : 
+        self.calib_events += 1
+        if len(self.mip_calibration) == 0 :
+            for ni in data :
+                if ni[0] > 0 : self.mip_calibration.append( (ni[0], 1) )
+                else : self.mip_calibration.append( (0, 0) )
+            return
+            
+        newcalib = []    
+        for ni,i in zip(data,self.mip_calibration) :
+            oldv, nevts = i
+            if ni[0] > 0 : newcalib.append( ( (nevts*oldv + ni[0])/(nevts+1), nevts+1 ) )
+            else : newcalib.append(i)
+                    
+        self.mip_calibration = newcalib
+
+    def load_calibration(self) :
+        if os.path.exists(self.path_calib):
+            self.mip_calibration = [x[0] for x in np.genfromtxt(self.path_calib)]
+
+    def fill_dico(self):      # class data for each click
+        # 1) apply trigger decision
+        # 2) Classify events into the categories
+        # 3) Update the plots which are always being filled,
+        # no matter if we are in live or in pause mode except integrated signal (done in update_plot)
+        # --> angular distribution of muons, frequency histogram
+        # 4) fill the csv file with MIP calibration
+        
+        self.acq_proc.fetch_data() # get data from pipe
+        current_pos=self.acq_proc.data.curr_pos # current position
+        if(self.acq_proc.data.curr_pos!=0 and current_pos!=self.sp): # avoid copy
+            self.sp=current_pos
+            
+            data=self.acq_proc.process_data_correction(self.acq_proc.data)   # give process data in p.e or MIP (without noise)
+            
+            ## Trigger implementation
+            self.trigger_dec = True
+            if self.trigger_type in triggers : 
+                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(data), layers = 5)
+                if not self.trigger_dec : return
+            ## continuing what was there before
+            
+            # Make a sound
+            os.system("echo -e '\a'")#beep -f 555 -l 460")
+            
+            ## Frequqncy plot
+            nt = time.time() - self.start_time
+            if len(self.tsampled) == 0 :
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
+                self.vsampled["freq"].append( ( 0., 0. ) )
+                
+            dt = nt - self.tsampled[-1]
+            if dt > self.sample_dt :
+                dn = self.acq_proc.Class_EventLive['AllEvents'].len() - self.vsampled["nevt"][-1]
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventLive['AllEvents'].len() )
+                
+                ## Only for dn > 0 to avoid negative frequencies when time resets
+                if dn > 0 : 
+                    self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
+                    if len(self.vsampled["freq"]) > 10000 :
+                        self.vsampled["freq"] = self.vsampled["freq"][10:]
+            
+            # Classify the event
+            self.acq_proc.Class_EventLive = self.dico_live.classify_event(data,self.acq_proc.evNumber.get_partial())# fill dico
+            self.energie_tot_seperete=self.dico_live.energie_deposite_seperete()  # event's energie 
+            self.event_seperete=self.dico_live.event_id() # event's id 
+            
+            # if it's a muon, calculate angle and use the hits for calibration
+            if self.dico_live.last_event_type == "Muon":
+                slope = self.acq_proc.Class_EventLive['MuonFitPara'].get_partial()[0]['m']
+                if slope!=None:
+                    self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
+                    #print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
+                else:
+                    self.theta.append(0)
+                    #print("m=",slope,"theta=",0)
+                if self.calibrate_MIP : self.calibrate(data)                                                    # plot fit
+            
+            # write the mip calibration CSV file
+            if self.calibrate_MIP and self.calib_events%self.calibration_CSV_write_frequency :
+                with open(self.path_calib,"w") as csvsavedfile:
+                    writerdata=csv.writer(csvsavedfile,delimiter='\t',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    writerdata.writerows(self.mip_calibration)
+            
+            # update of the angle histogram
+            self.y,self.x=np.histogram(self.theta,bins=np.linspace(self.angle_low, self.angle_high, self.angle_nbins))   # data histogram
+            self.AngleHist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+            if self.Auto : self.Auto.set_data(hist=(self.x,self.y))
+            
+            # update frequency plot
+            self.FreqHist.setData(
+                [x[0] for x in self.vsampled["freq"]],
+                [x[1] for x in self.vsampled["freq"]],
+                stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+            if self.Auto : self.Auto.set_data(freq=([x[0] for x in self.vsampled["freq"]],[x[1] for x in self.vsampled["freq"]] ))
+            
+            # update number of events per category
+            self.nb_events_per_class=[self.acq_proc.Class_EventLive['AllEvents'].len(),self.acq_proc.Class_EventLive['Muon'].len(),  # signal per categorie 
+                                self.acq_proc.Class_EventLive['Electron'].len(),self.acq_proc.Class_EventLive['Disintegration'].len(),self.acq_proc.Class_EventLive['HighEnergyElectron'].len()]
+            print("::::LIVE::::\t","Number of events inside buffer:",self.acq_proc.Class_EventLive['AllEvents'].len())
+            for event,nbr in enumerate(self.nb_events_per_class):   # saved when buffer is full
+                if(nbr==self.acq_proc.buffer_size):
+                    key=self.event_name[event]
+                    self.nbr_saving[event]+=1
+                    self.acq_proc.backup_dico_csv(self.path_backupdico,key,save='save') #save live events to a csv file
+             
+    def state_plotAll(self):
+        self.acq_proc.option='AllEvents'  # 0
+        self.option_num=0
+        if(self.acq_proc.Class_EventLive['AllEvents'].len()!=0):
+            self.timer_plot_update.singleShot(2,self.update_plot)
+    def state_plotMuon(self):
+        self.acq_proc.option='Muon'   # 1
+        self.option_num=1
+        if(self.acq_proc.Class_EventLive['Muon'].len()!=0):
+            self.timer_plot_update.singleShot(2,self.update_plot)
+    def state_plotElectron(self):
+        self.acq_proc.option='Electron'  # 2
+        self.option_num=2
+        if(self.acq_proc.Class_EventLive['Electron'].len()!=0):
+            self.timer_plot_update.singleShot(2,self.update_plot)
+    def state_plotDisintegration(self):
+        self.acq_proc.option='Disintegration'  # 3
+        self.option_num=3
+        if(self.acq_proc.Class_EventLive['Disintegration'].len()!=0):
+            self.timer_plot_update.singleShot(2,self.update_plot)
+    def state_plotHighEnergyElectron(self):
+        self.acq_proc.option='HighEnergyElectron'  # 4
+        self.option_num=4
+        if(self.acq_proc.Class_EventLive['HighEnergyElectron'].len()!=0):
+            self.timer_plot_update.singleShot(2,self.update_plot)
+            
             
 class CommandWindow(QtGui.QMainWindow):
     def __init__(self,acq):
@@ -570,8 +514,8 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui = Ui_CommandWindow()
         self.ui.setupUi(self)     
         self.acq_proc=acq               # obj DAQ
-        self.main=LiveWindow(acq)       # window live
-        self.Display=SavedWindow(acq)   # window saved
+        self.live_window=LiveWindow(acq)       # window live
+        self.saved_window=SavedWindow(acq)   # window saved
 
         #Constante
         self.savedrun=False
@@ -581,31 +525,36 @@ class CommandWindow(QtGui.QMainWindow):
         self.sig_load_setup_file()  # initialize pedestals and gains
         self.sig_load_sensor_pos()    # innitialize geometri sensor
         self.configure_signal()        # initialize interface
-        self.data_load()               # load data file wanted to read
+        self.data_load_limit = 25000    # limit on the number of events that can be loaded
+        self.data_load()               # load saved data
         self.configure_dico(0)     # 
         self.configure_timer()
-        self.main.state_plotAll()
-        self.main.configure_timers()
-        self.Display.configure_timers()
-        self.Display.state_plotAll()
+        self.live_window.state_plotAll()
+        self.live_window.configure_timers()
+        self.saved_window.configure_timers()
+        self.saved_window.state_plotAll()
+        
         self.configure_data_csv()
         self.configure_classify_csv() 
         self.get_value_USB_board()
         self.get_file_USB_board()
         
-        self.modules = self.main.module_2D() 
-        self.plates = self.main.plates_Pb()
+        self.modules = self.live_window.module_2D() # this takes 6.58s
+        self.plates = self.live_window.plates_Pb()  # this takes 0.17s
         
-        self.Display.module_2D()
-        self.Display.view3d.module([0.8,10,1/4])
+        self.saved_window.module_2D()
+        self.saved_window.plates_Pb()
         #LOGO
         self.ui.label_logo.setPixmap(QtGui.QPixmap('/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/detector.jpg'))
+        self.live_window.setRange2Dplot()
+        self.saved_window.setRange2Dplot()
         
-        self.main.setRange2Dplot()
+        self.Auto = None
         
     def configure_timer(self):
         self.timer=QtCore.QTimer(self)
         self.timer.timeout.connect(self.display_values)
+        self.timer.timeout.connect(self.checkAutoWindow)
         self.timer.start(50)
         
     def configure_signal(self):
@@ -616,16 +565,14 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.btnLiveLeft.clicked.connect(self.do_left)
         self.ui.btnLiveRight.clicked.connect(self.do_right)
         self.ui.btnLiveStopacq.clicked.connect(self.stop_daq)
-        self.ui.radioButton_muon.clicked.connect(self.main.state_plotMuon)
-        self.ui.radioButton_electron.clicked.connect(self.main.state_plotElectron)
-        self.ui.radioButton_disintegration.clicked.connect(self.main.state_plotDisintegration)
-        self.ui.radioButton_highelectron.clicked.connect(self.main.state_plotHighEnergyElectron)
-        self.ui.radioButton_All.clicked.connect(self.main.state_plotAll)
+        self.ui.radioButton_muon.clicked.connect(self.live_window.state_plotMuon)
+        self.ui.radioButton_electron.clicked.connect(self.live_window.state_plotElectron)
+        self.ui.radioButton_disintegration.clicked.connect(self.live_window.state_plotDisintegration)
+        self.ui.radioButton_highelectron.clicked.connect(self.live_window.state_plotHighEnergyElectron)
+        self.ui.radioButton_All.clicked.connect(self.live_window.state_plotAll)
         #self.ui.integration_bt.clicked.connect(self.switch_integration)
         self.ui.automatic_bt.clicked.connect(self.switch_automatic)
        
-        #3D setup
-        self.ui.rotation_saved.clicked.connect(self.Display.rotation)
         #SAVED BUTTONS
         self.ui.pushButton_SavedData.clicked.connect(self.saved_data)
         self.ui.btnSavedStart.clicked.connect(self.saved_start)
@@ -633,14 +580,14 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.btnSavedPause.clicked.connect(self.saved_pause)
         self.ui.btnSavedLeft.clicked.connect(self.saved_doleft)
         self.ui.spinBox_Event.valueChanged.connect(self.go_event)
-        self.ui.radioButton_muon_sd.clicked.connect(self.Display.state_plotMuon)
-        self.ui.radioButton_electron_sd.clicked.connect(self.Display.state_plotElectron)
-        self.ui.radioButton_disintegration_sd.clicked.connect(self.Display.state_plotDisintegration)
-        self.ui.radioButton_highelectron_sd.clicked.connect(self.Display.state_plotHighEnergyElectron)
-        self.ui.radioButton_All_sd.clicked.connect(self.Display.state_plotAll)
+        self.ui.radioButton_muon_sd.clicked.connect(self.saved_window.state_plotMuon)
+        self.ui.radioButton_electron_sd.clicked.connect(self.saved_window.state_plotElectron)
+        self.ui.radioButton_disintegration_sd.clicked.connect(self.saved_window.state_plotDisintegration)
+        self.ui.radioButton_highelectron_sd.clicked.connect(self.saved_window.state_plotHighEnergyElectron)
+        self.ui.radioButton_All_sd.clicked.connect(self.saved_window.state_plotAll)
         #PARAMETERS BUTTON
         self.ui.spinBox_Acq.valueChanged.connect(self.change_buffer_size)
-        self.ui.DataLoadbtn.clicked.connect(self.data_load)
+        self.ui.DataLoadbtn.clicked.connect(functools.partial(self.data_load, True))
         self.ui.sensorLoadbtn.clicked.connect(self.load_sensor_pos)
         self.ui.setupLoadbtn.clicked.connect(self.load_setup_file)
         self.ui.load_save_as.clicked.connect(self.configure_data_csv)
@@ -649,16 +596,23 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.spinBox_USB_board.valueChanged.connect(self.get_value_USB_board)
     
     #def switch_integration(self) :
-    #    self.main.integrate_on = not self.main.integrate_on
-    #    print ("Integration mode ON --> ",self.main.integrate_on)
+    #    self.live_window.integrate_on = not self.live_window.integrate_on
+    #    print ("Integration mode ON --> ",self.live_window.integrate_on)
     
     def switch_automatic(self) :
-        print ("Starting automatic window")
+        log.info("Starting automatic window")
         self.Auto=AutoWindow() 
-        self.main.Auto = self.Auto
-        self.main.Auto.set_modules(self.modules+self.plates)
+        self.live_window.Auto = self.Auto
+        self.live_window.Auto.set_modules(self.modules+self.plates)
+        self.live_window.Auto.window_closed = False
         self.Auto.show()
-   
+
+    def checkAutoWindow(self):
+        # checks if Auto window is closed:
+        if self.Auto:
+            if self.Auto.window_closed :
+                self.Auto = None
+    
         # unused
     def change_buffer_size(self):
         self.acq_proc.buffer_size=self.ui.spinBox_Acq.value()
@@ -670,12 +624,12 @@ class CommandWindow(QtGui.QMainWindow):
     ## CONFIGURATIONS DES DICTIONNAIRES 
     def configure_dico(self,key=0): 
         if(key==0):
-            self.main.dico_live=Classify(self.acq_proc.Class_EventLive,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
-            self.Display.dico_saved=Classify(self.acq_proc.Class_EventSaved,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
+            self.live_window.dico_live=Classify(self.acq_proc.Class_EventLive,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
+            self.saved_window.dico_saved=Classify(self.acq_proc.Class_EventSaved,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
         if(key==1):
-            self.main.dico_live=Classify(self.acq_proc.Class_EventLive,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
+            self.live_window.dico_live=Classify(self.acq_proc.Class_EventLive,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
         if(key==2):
-            self.Display.dico_saved=Classify(self.acq_proc.Class_EventSaved,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
+            self.saved_window.dico_saved=Classify(self.acq_proc.Class_EventSaved,self.ui.lineEdit_SensorPos.text(),self.ui.lineEdit_SetupFile.text())
     ### FICHIERS D'ENREGISTREMENT DES DONNEES
     def configure_data_csv(self):                                  
         path_backupfile=self.ui.lineEdit_SaveAs.text()
@@ -683,9 +637,9 @@ class CommandWindow(QtGui.QMainWindow):
         log.info("Data saved in {}".format(path_backupfile)) 
     
     def configure_classify_csv(self):
-        self.main.path_backupdico=self.ui.lineEdit_Dossier.text()
-        self.acq_proc.backup_dico_csv(self.main.path_backupdico,save='config')
-        log.info("Data Classify saved in {}".format(self.main.path_backupdico))  
+        self.live_window.path_backupdico=self.ui.lineEdit_Dossier.text()
+        self.acq_proc.backup_dico_csv(self.live_window.path_backupdico,save='config')
+        log.info("Data Classify saved in {}".format(self.live_window.path_backupdico))  
 
     ## LOAD fICHIERS SETUP ET GEOMETRIE 
     def sig_load_setup_file(self):
@@ -708,8 +662,9 @@ class CommandWindow(QtGui.QMainWindow):
         y = np.unique(data[:,4])
         yprime = np.unique(data[:,3])
         yconv = (yprime[-1]-yprime[0])/(y[-1]-y[0])
-        self.main.slope_conversion_factor = yconv/xconv
-        log.info("Slope conversion factor between 2D plot and reality is: {}".format(self.main.slope_conversion_factor))
+        self.live_window.slope_conversion_factor = yconv/xconv
+        self.saved_window.slope_conversion_factor = yconv/xconv
+        log.info("Slope conversion factor between 2D plot and reality is: {}".format(self.live_window.slope_conversion_factor))
         
     def get_value_USB_board(self):
         self.USBboard_Nevents=self.ui.spinBox_USB_board.value()
@@ -725,10 +680,10 @@ class CommandWindow(QtGui.QMainWindow):
         data = np.genfromtxt(file_path, dtype=np.float)
         # set sensor position (as unit, we have channel number as y and layer number as z)
         self.acq_proc.set_sensor_pos(data[:,5], data[:,4], data[:,0], data[:,1])
-        self.main.module_2D() 
-        self.Display.module_2D()
-        self.main.view3d.module([0.8,10,1/4])
-        self.Display.view3d.module([0.8,10,1/4])
+        self.live_window.module_2D() 
+        self.saved_window.module_2D()
+        self.live_window.view3d.module([0.8,10,1/4])
+        self.saved_window.view3d.module([0.8,10,1/4])
         self.configure_dico()
     
     def load_setup_file(self):
@@ -738,41 +693,46 @@ class CommandWindow(QtGui.QMainWindow):
         self.configure_dico()
     
     def clear(self):
-        if(len(self.main.view3d.w.items)>5):
+        if(len(self.live_window.view3d.w.items)>5):
             for i in range(len(self.acq_proc.x_coords)):
-                self.main.tracker.removeItem(self.main.module[i])
-                self.Display.plot2.removeItem(self.Display.module[i])
-                self.main.view3d.w.removeItem(self.main.view3d.barette[i])
-                self.Display.view3d.w.removeItem(self.Display.view3d.barette[i])
+                self.live_window.tracker.removeItem(self.live_window.module[i])
+                self.saved_window.plot2.removeItem(self.saved_window.module[i])
+                self.live_window.view3d.w.removeItem(self.live_window.view3d.barette[i])
+                self.saved_window.view3d.w.removeItem(self.saved_window.view3d.barette[i])
 
     ## DISPLAY VALUE ON COMMAND WINDOW
     def display_values(self):                                ##### affiche le nombre d'event dans chaque catégorie
-        self.ui.ALL_Ind.display(self.main.nb_events_per_class[0]+self.acq_proc.buffer_size*self.main.nbr_saving[0])
-        self.ui.electron_Ind.display(self.main.nb_events_per_class[2]+self.acq_proc.buffer_size*self.main.nbr_saving[2])
-        self.ui.muon_Ind.display(self.main.nb_events_per_class[1]+self.acq_proc.buffer_size*self.main.nbr_saving[1])
-        self.ui.disintegration_Ind.display(self.main.nb_events_per_class[3]+self.acq_proc.buffer_size*self.main.nbr_saving[3])
-        self.ui.highelectron_Ind.display(self.main.nb_events_per_class[4]+self.acq_proc.buffer_size*self.main.nbr_saving[4])
-        self.ui.ALL_Ind_sd.display(self.Display.nb_events_per_class[0])
-        self.ui.electron_Ind_sd.display(self.Display.nb_events_per_class[2])
-        self.ui.muon_Ind_sd.display(self.Display.nb_events_per_class[1])
-        self.ui.disintegration_Ind_sd.display(self.Display.nb_events_per_class[3])
-        self.ui.highelectron_Ind_sd.display(self.Display.nb_events_per_class[4])
+        self.ui.ALL_Ind.display(self.live_window.nb_events_per_class[0]+self.acq_proc.buffer_size*self.live_window.nbr_saving[0])
+        self.ui.electron_Ind.display(self.live_window.nb_events_per_class[2]+self.acq_proc.buffer_size*self.live_window.nbr_saving[2])
+        self.ui.muon_Ind.display(self.live_window.nb_events_per_class[1]+self.acq_proc.buffer_size*self.live_window.nbr_saving[1])
+        self.ui.disintegration_Ind.display(self.live_window.nb_events_per_class[3]+self.acq_proc.buffer_size*self.live_window.nbr_saving[3])
+        self.ui.highelectron_Ind.display(self.live_window.nb_events_per_class[4]+self.acq_proc.buffer_size*self.live_window.nbr_saving[4])
+        self.ui.ALL_Ind_sd.display(self.saved_window.nb_events_per_class[0])
+        self.ui.electron_Ind_sd.display(self.saved_window.nb_events_per_class[2])
+        self.ui.muon_Ind_sd.display(self.saved_window.nb_events_per_class[1])
+        self.ui.disintegration_Ind_sd.display(self.saved_window.nb_events_per_class[3])
+        self.ui.highelectron_Ind_sd.display(self.saved_window.nb_events_per_class[4])
+        
+        # Display values in the saved graph window
         if(self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].len()!=0):
-            self.ui.current_event.display(self.Display.event_seperete[self.Display.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos])
-            self.Display.ui.EnergieDep.setText(str(self.Display.energie_tot_seperete[self.Display.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos])+" MIP")
+            self.ui.current_event.display(self.saved_window.event_seperete[self.saved_window.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos])
+            self.saved_window.ui.EnergieDep.setText("  "+str(self.saved_window.energie_tot_seperete[self.saved_window.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos])+" MIP")
+            self.saved_window.ui.EventType.setText("  "+str(self.saved_window.event_type))
+            
+        #Display values in the live graph window
         if(self.acq_proc.Class_EventLive[self.acq_proc.option].len()!=0):
             if(self.acq_proc.lastpos==True):
-                self.ui.CurrentEven.display(self.main.event_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
-                                                +self.acq_proc.buffer_size*self.main.nbr_saving[self.main.option_num]])
-                self.main.ui.EnergieDep.setText("  "+str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
-                                               +self.acq_proc.buffer_size*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText("  "+str(self.main.event_type))
+                self.ui.CurrentEven.display(self.live_window.event_seperete[self.live_window.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
+                                                +self.acq_proc.buffer_size*self.live_window.nbr_saving[self.live_window.option_num]])
+                self.live_window.ui.EnergieDep.setText("  "+str(self.live_window.energie_tot_seperete[self.live_window.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].curr_pos-1
+                                               +self.acq_proc.buffer_size*self.live_window.nbr_saving[self.live_window.option_num]])+" MIP")
+                self.live_window.ui.EventType.setText("  "+str(self.live_window.event_type))
             else:
-                self.ui.CurrentEven.display(self.main.event_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
-                                                    +self.acq_proc.buffer_size*self.main.nbr_saving[self.main.option_num]])
-                self.main.ui.EnergieDep.setText("  "+str(self.main.energie_tot_seperete[self.main.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
-                                               +self.acq_proc.buffer_size*self.main.nbr_saving[self.main.option_num]])+" MIP")
-                self.main.ui.EventType.setText("  "+str(self.main.event_type))
+                self.ui.CurrentEven.display(self.live_window.event_seperete[self.live_window.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
+                                                    +self.acq_proc.buffer_size*self.live_window.nbr_saving[self.live_window.option_num]])
+                self.live_window.ui.EnergieDep.setText("  "+str(self.live_window.energie_tot_seperete[self.live_window.option_num][self.acq_proc.Class_EventLive[self.acq_proc.option].free_pos
+                                               +self.acq_proc.buffer_size*self.live_window.nbr_saving[self.live_window.option_num]])+" MIP")
+                self.live_window.ui.EventType.setText("  "+str(self.live_window.event_type))
 
    # def message_error(self):
         
@@ -802,31 +762,31 @@ class CommandWindow(QtGui.QMainWindow):
         
         self.acq_proc.start_acquisition(cmd,options)
         self.liverun=True
-        self.main.live_mode = True
+        self.live_window.live_mode = True
         self.acq_proc.lastpos=True
-        self.main.timer_acquisition.start(self.frequency)
-        self.main.timer_plot_update.start(self.frequency)
-        self.main.show()
+        self.live_window.timer_acquisition.start(self.frequency)
+        self.live_window.timer_plot_update.start(self.frequency)
+        self.live_window.show()
     
     # DISPLAY PAUSE
     def live_pause(self):
-        self.main.live_mode = False
-        self.main.timer_plot_update.stop()
-        self.main.show()   
+        self.live_window.live_mode = False
+        self.live_window.timer_plot_update.stop()
+        self.live_window.show()   
     
     # DISPLAY START  display the last data
     def live_start(self):
         self.acq_proc.lastpos=True
         self.liverun=True
-        self.main.live_mode = True
-        self.main.timer_plot_update.start(self.frequency)
+        self.live_window.live_mode = True
+        self.live_window.timer_plot_update.start(self.frequency)
     
     # STOP DAQ
     def stop_daq(self):
         log.info("Stop DAQ")
         self.acq_proc.stop_acquisition()
-        self.main.timer_acquisition.stop()
-        self.main.timer_plot_update.stop()
+        self.live_window.timer_acquisition.stop()
+        self.live_window.timer_plot_update.stop()
         self.acq_proc.reset_buffers()
     
     # dislay the left trace
@@ -834,94 +794,103 @@ class CommandWindow(QtGui.QMainWindow):
         if(self.liverun==True):
             self.live_pause()
         self.acq_proc.lastpos=False
-        self.main.timer(cmd="left")
-        self.main.timer_plot_update.singleShot(2,self.main.update_plot)
-        self.main.show()
+        self.live_window.timer(cmd="left")
+        self.live_window.timer_plot_update.singleShot(2,self.live_window.update_plot)
+        self.live_window.show()
     
     # display right trace    
     def do_right(self):
         if(self.liverun==True):
             self.live_pause()
         self.acq_proc.lastpos=False
-        self.main.timer(cmd="right")
-        self.main.timer_plot_update.singleShot(2,self.main.update_plot)
-        self.main.show()
+        self.live_window.timer(cmd="right")
+        self.live_window.timer_plot_update.singleShot(2,self.live_window.update_plot)
+        self.live_window.show()
     
     ####### SAVED ###########
     # DISPLAY PAUSE
     def saved_pause(self):
-        self.Display.timer_plot_update.stop()
-        self.Display.show()
+        self.saved_window.play = False
+        self.saved_window.timer_plot_update.stop()
+        self.saved_window.show()
     
     #DISPLAY START    display successive data
     def saved_start(self):
-        if(self.Display.ip==True):
-            log.info("Data end")
+        if(self.saved_window.ip==True):
+            log.info("End of saved data reached.")
             self.saved_pause()
-        else: 
-            self.Display.timer_plot_update.start(500)
+        else:
+            log.info("Starting Play mode for saved window")
+            self.saved_window.timer_plot_update.start(1000/self.saved_window.saved_event_frequency)
             self.savedrun=True
-        self.Display.show()
+            self.saved_window.play = True
+        self.saved_window.show()
     
     #display the left trace
     def saved_doleft(self):
         if(self.savedrun==True):
             self.saved_pause()
             self.savedrun=False
-        self.Display.timer(cmd="left")
-        self.Display.timer_plot_update.singleShot(2,self.Display.upd_plt)
-        self.Display.show()
+        self.saved_window.timer(cmd="left")
+        self.saved_window.timer_plot_update.singleShot(2,self.saved_window.update_plot)
+        self.saved_window.show()
     
     #display the right trace
     def saved_doright(self):
         if(self.savedrun==True):
             self.saved_pause()
             self.savedrun=False
-        self.Display.timer(cmd="right")
-        self.Display.timer_plot_update.singleShot(2,self.Display.upd_plt)
-        self.Display.show()
+        self.saved_window.timer(cmd="right")
+        self.saved_window.timer_plot_update.singleShot(2,self.saved_window.update_plot)
+        self.saved_window.show()
     
     # go to the id trace selected
     def go_event(self):
+        self.saved_window.play = False
         num_event = self.ui.spinBox_Event.value()
         if(0<=num_event<self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].len()):
             self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos=num_event-1
-            self.Display.timer_plot_update.singleShot(2,self.Display.upd_plt)
+            self.saved_window.timer_plot_update.singleShot(2,self.saved_window.update_plot)
         else:log.info("Event request out of range")
-        self.Display.show()
+        self.saved_window.show()
     
     # LOAD DATA FROM A FILE
-    def data_load(self):
+    def data_load(self, process=False):
         path = self.ui.lineEdit_DataPath.text()
         log.info("Loading Data file {} WAIT...".format(path))
         ns=time.time()
-        self.Display.datafile = np.genfromtxt(path)    # prend 8s 
+        self.saved_window.datafile = np.genfromtxt(path, max_rows=self.data_load_limit)
+        nevents_loaded = len(self.saved_window.datafile)
         ne=time.time()
-        log.info("Loading time {}".format(ne-ns))
+        log.info("Loading time {0} for Nevents={1}".format(ne-ns,nevents_loaded))
         self.savedrun=False
-        if(self.Display.datafile[1:]=="nan"):
-            log.info("Loading failed")
-        self.acq_proc.reset_event_classification_saved(len(self.Display.datafile))
+        if(nevents_loaded==0):
+            log.warning("Failed to load file {}".format(path))
+        self.acq_proc.reset_event_classification_saved(len(self.saved_window.datafile))
         self.configure_dico(2)
+        # redefine start time
+        self.saved_window.start_time = self.saved_window.datafile[0][1]
+        if process:
+            self.saved_window.process_all_events()
         
     # CLASSIFY DATA LOADED
     def saved_data(self):
         if(self.savedrun==False):
-            self.Display.trier()
+            self.saved_window.process_all_events()
         self.savedrun=True
-        self.Display.show()
+        self.saved_window.show()
     
     # CLOSE SOFTWARE
     def closeEvent(self, event):
-        print('Window closed: ')
-        print('event: {0}'.format(event))
+        log.info('Window closed: ')
+        log.info('event: {0}'.format(event))
         if self.acq_proc.sp is not None:
             if self.acq_proc.sp.proc:
                 self.acq_proc.sp.proc.terminate()
         #time.sleep(5)
-        self.Display.timer_plot_update.stop()
-        self.main.timer_plot_update.stop()
-        self.main.timer_acquisition.stop()
+        self.saved_window.timer_plot_update.stop()
+        self.live_window.timer_plot_update.stop()
+        self.live_window.timer_acquisition.stop()
         self.timer.stop()
         win2.close()
         win3.close()
@@ -929,57 +898,20 @@ class CommandWindow(QtGui.QMainWindow):
         event.accept()
         
         
-class SavedWindow(QtGui.QMainWindow):
+class SavedWindow(GraphWindow):
     def __init__(self,acq_proc):
-        QtGui.QMainWindow.__init__(self)
-        self.ui = Ui_DisplayModeWindow()
-        self.ui.setupUi(self)
         
-        self.acq_proc=acq_proc  # daq object
-        self.view3d=View3D(self.ui.plt3d,acq_proc)     #object 3d
+        GraphWindow.__init__(self,acq_proc)
         
+        self.play = False
         self.cmd=None  # command path
         self.ip=True    # booleen
-        self.nb_events_per_class=[0]*5     
-        self.energie_tot_seperete=[[0]]*5  
-        self.theta=[]        # array of each muon trace
-        self.event_seperete=[[0]]*5   # array of event id
-        self.play_cam=1
+        self.apply_trigger = True
+        self.saved_event_frequency = 1  # event frequency in [Hz] when play button is pressed
         
-        self.configure_plot_saved_data()
-        
-        #CONFIGURATION
-    def configure_plot_saved_data(self):
-        self.img_cannaux = pg.ImageItem()
-        self.scatt=pg.ScatterPlotItem(pxMode=False,pen=pg.mkPen(None))
-        self.droite = pg.PlotDataItem(x=[],y=[],pen=pg.mkPen(color=(255, 0, 0),width=3))
-        self.Hist=pg.PlotCurveItem()
-        self.module=[pg.GraphItem()]*400
-        ################### creation des objects d'affichage ########################
-        # array used in 3d
-        self.pos3D = np.empty((self.acq_proc.num_sensors_enabled, 3))
-        self.size3D = np.empty(self.acq_proc.num_sensors_enabled)
-        self.color3D = np.empty((self.acq_proc.num_sensors_enabled, 4))
-        # Object plot 3D
-        self.scat3d = gl.GLScatterPlotItem(pos=self.pos3D, size=self.size3D, color=self.color3D, pxMode=False)
-        self.fit3d = gl.GLLinePlotItem(pos=self.pos3D,color=pg.glColor((0,1.3)), width=1, antialias=True)
-        self.view3d.w.addItem(self.scat3d)
-        self.view3d.w.addItem(self.fit3d)
-        # Object graphiques diff plot sont ajouter sur une zone de graphique graphiqueview
-        self.plot1 = self.ui.pltchannel.addPlot(title ="Channels")
-        self.plot1.addItem(self.img_cannaux )
-        self.plot2=self.ui.plttracker.addPlot(title='Tracker')
-        self.plot2.addItem(self.scatt)
-        self.plot2.addItem(self.droite)
-        self.plot3=self.ui.plthisto.addPlot(title='Angle incidencie')
-        self.plot3.addItem(self.Hist)
-        self.plot4=self.ui.pltfrequency.addPlot(title='Event frequency')
-        
-        
-    def configure_timers(self):     
-        self.timer_plot_update = QtCore.QTimer(self)
-        self.timer_plot_update.timeout.connect(self.timer)
-        self.timer_plot_update.timeout.connect(self.upd_plt)
+    def configure_timers(self):
+        GraphWindow.configure_timers(self)
+        self.timer_plot_update.timeout.connect(self.update_plot)
     
         # TIMER select the trace for each click
     def timer(self,cmd="right"):     
@@ -996,136 +928,137 @@ class SavedWindow(QtGui.QMainWindow):
     def state_plotAll(self):
         self.acq_proc.option_saved='AllEvents'
         self.option_num=0
-        self.timer_plot_update.singleShot(2,self.upd_plt)
+        self.timer_plot_update.singleShot(2,self.update_plot)
     def state_plotMuon(self):
         self.acq_proc.option_saved='Muon'
         self.option_num=1
-        self.timer_plot_update.singleShot(2,self.upd_plt)
+        self.timer_plot_update.singleShot(2,self.update_plot)
     def state_plotElectron(self):
         self.acq_proc.option_saved='Electron'
         self.option_num=2
-        self.timer_plot_update.singleShot(2,self.upd_plt)
+        self.timer_plot_update.singleShot(2,self.update_plot)
     def state_plotDisintegration(self):
         self.acq_proc.option_saved='Disintegration'
         self.option_num=3
-        self.timer_plot_update.singleShot(2,self.upd_plt)
+        self.timer_plot_update.singleShot(2,self.update_plot)
     def state_plotHighEnergyElectron(self):
         self.acq_proc.option_saved='HighEnergyElectron'  
         self.option_num=4
-        self.timer_plot_update.singleShot(2,self.upd_plt)
-    
-        #SCATTER PLOT give array to plot the scatter dimension array: size=sensor number (320,128...)
-    def plot_signals_scatter(self): 
-        current_pos=self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos
-        colors=[]
-        data = self.acq_proc.Class_EventSaved[self.acq_proc.option_saved][current_pos]
-        if(len(data)!=len(self.acq_proc.sensor_ids)):
-            log.warning("The geometry file don't fit with data length")
-            self.timer_plot_update.stop()
-            return False
-        #intensity = data[self.acq_proc.sensor_ids] 
-        intensity = data
-        maxintensity = np.max(intensity)
-        for i in range(len(self.acq_proc.sensor_ids)):
-             intensity[i]=math.log(intensity[i]+1)
-             colors.append(pg.intColor(2+intensity[i], hues=(100/(self.acq_proc.PetoMip/10.5))*1, values=1, maxValue=255, minValue=150, maxHue=360, minHue=0, sat=255, alpha=255)) 
-        return intensity, colors, maxintensity,data
-    
-        # PROCESS DATA      give data in photoelectron or in MIP 
-    def plot_signals_map(self):
-        data=self.acq_proc.data_load.get_partial()
-        event=data[0]
-        data=data[2:]  # retire le num de l'event et le temps
-        pedestals=self.acq_proc.calibration_all_channels['pedestals']   # array de pedestal= electronical noise
-        gains=self.acq_proc.calibration_all_channels['gains']
-        for i in range(len(gains)):                
-            if(gains[i]==0):    
-                gains[i]=1
-                log.warning("Gains are null")
-        data=(data[0:self.acq_proc.num_sensors_enabled]-pedestals)/(gains[0:self.acq_proc.num_sensors_enabled]*self.acq_proc.PetoMip)
-        for i in range(len(data)):                 
-            if(data[i]<0 or data[i]<self.acq_proc.Threshold):                                #retire les donnees en dessous de threshold
-                data[i]=0
-        return data,event 
+        self.timer_plot_update.singleShot(2,self.update_plot)
         
         # UPDATE PLOT
-    def upd_plt(self):                # fonction plot, generer par timer
-        if(self.plot_signals_scatter()==False):
+    def update_plot(self):                # fonction plot, generer par timer
+        if(self.acq_proc.plot_signals_scatter(self.acq_proc.getSavedEvent)==False):
             self.timer_plot_update.stop()
+            return
+
+        if self.play:
+            self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos+=1
+        
+        current_pos=self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos
+        intensity, self.data, event_type = self.acq_proc.plot_signals_scatter(self.acq_proc.getSavedEvent)
+        
+        if self.acq_proc.option_saved!="AllEvents":
+            fit_para_key = "MuonFitPara"
         else:
-            intensity, colors, maxintensity,data = self.plot_signals_scatter()                # donnee du plots 
-            self.y,self.x=np.histogram(self.theta,bins=np.linspace(-50, 50, 20))               
-            # histogramme angles
-            self.Hist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80))
-            # histogramme cannaux 
-            self.img_cannaux.setImage(data.reshape(self.acq_proc.num_sensors_enabled,1))     
-            if(maxintensity!=0):
-            # plot le scatterplot
-                self.scatt.setData(x=self.acq_proc.x_coords,                                  
-                                y=self.acq_proc.y_coords,size=(intensity/5),brush=colors)
-            if(self.acq_proc.option_saved=='Muon'):
-                x,y=self.dico_saved.fit_event(data,plot=True)
-                 # trace la droite de fit
-                self.droite.setData(x,y)                                                      
-            else:self.droite.setData([0],[0])
-            ##### 3D #####
-            # the third dimension is calculated with random
-            y,z,x_coord=self.dico_saved.signal_xyz(intensity)                # give coordonee(x_coord,y,z), signal in MIP or p.e and two points(verts) to plot fiting muon trace
-            x_coords=self.dico_saved.simulation_x(intensity)
-            for i in range(len(self.acq_proc.y_coords)):
-                self.color3D[i]=(1,1,1,1)                   # color array
-            #self.pos3D=np.vstack([x_coord,y,z]).transpose()  # array contenant les donnees 3d 
-            self.pos3D=np.vstack([x_coords,-self.acq_proc.Sensor_per_Stage/2+self.acq_proc.x_coords,-self.acq_proc.nb_Stage/2 + self.acq_proc.y_coords]).transpose()
-            if(maxintensity!=0):
-                self.scat3d.setData(pos=self.pos3D,size=np.asarray(intensity)/maxintensity,color=self.color3D) # charge les donnees
-            self.view3d.affichage(intensity,x_coords)  # affiche le graph 3d
-            if(self.option_num==1):
-                pos=self.dico_saved.fit_event3D(intensity,self.pos3D)
-                self.fit3d.setData(pos=pos,color=pg.glColor((20,20)), width=5)  # charge les donnees de la droite 
-            if(self.option_num!=1):
-               self.fit3d.setData(pos=np.array([0,0,0]),color=pg.glColor((20,30)), width=5)
-            self.ui.plt3d.items=self.view3d.w.items
+            fit_para_key = "AllEventsMuonFitPara"
+        
+        print(":::SAVED:::\t","Event:",self.event_seperete[self.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos],"  Type:",event_type)
+        self.event_type = event_type
+        
+        # 2D scatter plot
+        maxintensity = np.max(intensity)
+        if(maxintensity!=0):
+            # point size and colour are defined in file configurePlots.py
+            self.scatt.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](intensity,maxi=1,mini=0.1,saturate_at=0.5),
+                brush=pt_colour["linear"](intensity,maxi=0,mini=90)) # plot scatter
+        
+        if event_type=="Muon":
+            reg_y = self.acq_proc.Class_EventSaved[fit_para_key][current_pos][0]['reg_y']
+            reg_z = self.acq_proc.Class_EventSaved[fit_para_key][current_pos][0]['reg_z']
+            self.droite.setData(reg_y,reg_z)
+        else:
+            self.droite.setData([0],[0])     # resets linear fit to nothing
+        
+        # checks if autorange is on: if yes, disable it
+        if self.scatt.getViewBox().getState()['autoRange'] == [True, True]:
+            self.setRange2Dplot()
     
     def event_display(self):
         self.event_seperete[self.option_num][self.acq_proc.Class_EventSaved[self.acq_proc.option_saved].free_pos]
          
         #    SEPERATE DATA IN A DICTIONNARY                     
-    def trier(self):
+    def process_all_events(self):
         for i,data in enumerate(self.datafile):
-            self.acq_proc.data_load.append(data[0:self.acq_proc.num_sensors_enabled+2])
-            self.dataPlot,event=self.plot_signals_map()
+            # get event number
+            event=data[0]
             self.acq_proc.Event_id_Saved.append(event)
-            self.acq_proc.Class_EventSaved,self.theta = self.dico_saved.classify_event(self.dataPlot,self.acq_proc.Event_id_Saved.get_partial())
+            # process the data
+            self.acq_proc.saved_data_buffer.append(data[2:self.acq_proc.num_sensors_enabled+2])
+            processed_data = self.acq_proc.process_data_correction(self.acq_proc.saved_data_buffer)
+            
+            ## Trigger implementation
+            self.trigger_dec = True
+            if self.apply_trigger and (self.trigger_type in triggers) :
+                self.trigger_dec = triggers[self.trigger_type](self.acq_proc.make_data_grid(processed_data), layers = 5)
+                if not self.trigger_dec :
+                    continue
+            
+            # classify the data into the categories
+            self.acq_proc.Class_EventSaved = self.dico_saved.classify_event(processed_data,self.acq_proc.Event_id_Saved.get_partial())
+            # get energy deposit
             self.energie_tot_seperete=self.dico_saved.energie_deposite_seperete()
             self.event_seperete=self.dico_saved.event_id()
-        self.nb_events_per_class=[self.acq_proc.Class_EventSaved['AllEvents'].len(),self.acq_proc.Class_EventSaved['Muon'].len(),
-                                        self.acq_proc.Class_EventSaved['Electron'].len(),self.acq_proc.Class_EventSaved['Disintegration'].len(),self.acq_proc.Class_EventSaved['HighEnergyElectron'].len()]                                 
 
-    def rotation(self):   # rotation camera
-        if(self.play_cam==0):
-            self.view3d.timer_camera(0)
-            self.view3d.timer_cam.start()
-            self.play_cam=1
-        else:
-            self.view3d.timer_camera(0.2)
-            self.view3d.timer_cam.start()
-            self.play_cam=0
+            # get time of measurement
+            t = data[1]
+            ## Frequqncy plot
+            nt = t - self.start_time
+            if len(self.tsampled) == 0 :
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventSaved['AllEvents'].len() )
+                self.vsampled["freq"].append( ( 0., 0. ) )
+                
+            dt = nt - self.tsampled[-1]
+            if dt > self.sample_dt :
+                dn = self.acq_proc.Class_EventSaved['AllEvents'].len() - self.vsampled["nevt"][-1]
+                self.tsampled.append( nt )
+                self.vsampled["nevt"].append( self.acq_proc.Class_EventSaved['AllEvents'].len() )
+                
+                ## Only for dn > 0 to avoid negative frequencies when time resets
+                if dn > 0 : 
+                    self.vsampled["freq"].append( ( nt, float(dn) / dt ) )
             
-            ## draw sensors on 2d plot
-    def module_2D(self):
-        sensor=np.array([self.acq_proc.x_coords,self.acq_proc.y_coords])
-        x=0.4;y=0.2
-        for i in range(len(self.acq_proc.x_coords)):
-            pos=np.array([[sensor[0][i]-x,sensor[1][i]-y],[sensor[0][i]-x,sensor[1][i]+y],[sensor[0][i]+x,sensor[1][i]-y],[sensor[0][i]+x,sensor[1][i]+y]])
-            lines = np.array([
-                (25.5,127.5,127.5,200,2),
-                (25.5,127.5,127.5,200,2),
-                (25.5,127.5,127.5,200,2),
-                (25.5,127.5,127.5,200,2)]
-                , dtype=[('red',np.ubyte),('green',np.ubyte),('blue',np.ubyte),('alpha',np.ubyte),('width',float)])
-            adj=np.array([[0,1],[1,3],[3,2],[2,0]])
-            self.module[i]=pg.GraphItem(pos=pos,adj=adj,pen=lines,size=1,pxMode=True)
-            self.plot2.addItem(self.module[i])
+            # integrate signal
+            integ_intensity = self.integrate(self.acq_proc.Class_EventSaved["AllEvents"].get_partial()/self.acq_proc.calibration_all_channels['normalization'])
+            
+            # if it's a muon, calculate the angle
+            if self.dico_saved.last_event_type == "Muon":
+                slope = self.acq_proc.Class_EventSaved['MuonFitPara'].get_partial()[0]['m']
+                if slope!=None:
+                    self.theta.append((180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))   # this is the right theat angle, the one measured with real coordinates
+                    #print("m=",slope,"theta=",(180/math.pi)*(math.atan(-1./(slope*self.slope_conversion_factor))))
+                else:
+                    self.theta.append(0)
+        
+        # update of the angle histogram
+        self.y,self.x=np.histogram(self.theta,bins=np.linspace(self.angle_low, self.angle_high, self.angle_nbins))   # data histogram
+        self.AngleHist.setData(self.x,self.y,stepMode=True, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+        
+        # update frequency plot
+        self.FreqHist.setData(
+            [x[0] for x in self.vsampled["freq"]],
+            [x[1] for x in self.vsampled["freq"]],
+            stepMode=False, fillLevel=0, brush=(0, 0, 255, 80)) # send data angle histogram
+        
+        # update integrated signal plot
+        self.integ.setData(x=self.acq_proc.x_coords,y=self.acq_proc.y_coords,
+                size=pt_size["linear"](np.asarray(self.int_intensities),maxi=1,mini=0.01,saturate_at=0.02),
+                brush=pt_colour["linear"](np.asarray(self.int_intensities),maxi=0,mini=90))
+        
+        self.nb_events_per_class=[self.acq_proc.Class_EventSaved['AllEvents'].len(),self.acq_proc.Class_EventSaved['Muon'].len(),
+                                        self.acq_proc.Class_EventSaved['Electron'].len(),self.acq_proc.Class_EventSaved['Disintegration'].len(),self.acq_proc.Class_EventSaved['HighEnergyElectron'].len()]
     
 def start_logging(level):
     log_format = log.Formatter('%(asctime)s,%(levelname)s,%(message)s')
@@ -1172,11 +1105,11 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
     win1 = CommandWindow(ap)
-    win1.setWindowTitle('Control Window')
+    #win1.setWindowTitle('Control Window')
     win2 = LiveWindow(ap)
-    win2.setWindowTitle('Live Window')
+    #win2.setWindowTitle('Live Window')
     win3 = SavedWindow(ap)
-    win3.setWindowTitle('Saved Window')
+    #win3.setWindowTitle('Saved Window')
     
     win1.show()
     app.exec()

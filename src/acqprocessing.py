@@ -149,14 +149,9 @@ class AcqProcessing:
         #if kk == 0: return False
         return True
     
-    
-    #SCATTER PLOT 
-    def plot_signals_scatter(self):
-        #renvoie les donnees necessaire au scatter plot
-        # les intensités, et les donnees 
-        # difference entre data et intensity : intensity is normalized data
-        
+    def getLiveEvent(self):
         event_type = None
+        data = None
         if(self.lastpos==True): # LIVE
             # Get live data
             data = self.Class_EventLive[self.option].get_partial()# last value
@@ -175,6 +170,29 @@ class AcqProcessing:
             else:
                 event_type = self.Class_EventLive["AllEventsType"][self.Class_EventLive[self.option].free_pos][0]
         
+        return event_type, data
+    
+    def getSavedEvent(self):
+        event_type = None
+        data = None
+        
+        current_pos=self.Class_EventSaved[self.option_saved].free_pos
+        data = self.Class_EventSaved[self.option_saved][current_pos]
+        if self.option_saved != "AllEvents":
+            event_type = self.option_saved
+        else:
+            event_type = self.Class_EventSaved["AllEventsType"][self.Class_EventSaved[self.option_saved].free_pos][0]
+        
+        return event_type, data
+    
+    #SCATTER PLOT 
+    def plot_signals_scatter(self,method):
+        #renvoie les donnees necessaire au scatter plot
+        # les intensités, et les donnees 
+        # difference entre data et intensity : intensity is normalized data
+        
+        event_type, data = method()
+        
         if(len(data)!=len(self.sensor_ids)):
             log.warning("The geometry file doesn't fit with data length")
             self.sp.stop()
@@ -184,13 +202,13 @@ class AcqProcessing:
         return intensity, data, event_type
     
     #PROCESS DATA 
-    def plot_signals_map(self):   
+    def process_data_correction(self,DATA):   #to apply corrections to live data: DATA=self.data, for saved data: DATA=self.load_data
         # this fonction process data
         #outpout= data-pedes/gain
         if self.integrate:              
-            return np.sum(self.data.get_all(), axis=0).reshape(self.num_sensors_enabled,1)
+            return np.sum(DATA.get_all(), axis=0).reshape(self.num_sensors_enabled,1)
         else:
-            data=self.data.get_partial() # last value    get partial donne la dernierre donnee aquise
+            data=DATA.get_partial() # last value    get partial donne la dernierre donnee aquise
             pedestals=self.calibration_all_channels['pedestals'] # charge pedestaux   array size nb_sensor
             gains=self.calibration_all_channels['gains']  # charge gain
             
@@ -255,9 +273,11 @@ class AcqProcessing:
                                     cols=self.num_sensors_enabled+2)
         self.data_option=RingBuffer2D(self.buffer_size,         # data = All or Muon or Electron ....
                                     cols=self.num_sensors_enabled+2,dtype=float)
+        self.saved_data_buffer = RingBuffer2D(self.buffer_size,
+                                    cols=self.num_sensors_enabled)
         while not self.queue.empty():
             self.queue.get()
-        log.info("Buffers cleared") 
+        log.info("Buffers cleared")
         
     def reset_event_classification_live(self):
         self.Event_Muon = RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float)
@@ -278,21 +298,25 @@ class AcqProcessing:
                                     'AllEventsMuonFitPara':(self.All_Events_muon_FitPara)}
         log.info("Buffers live cleared size {}".format(self.buffer_size)) 
     
-    def reset_event_classification_saved(self,lenght):
-        self.Event_Muon_s = RingBuffer2D(lenght,
+    def reset_event_classification_saved(self,length):
+        self.Event_Muon_s = RingBuffer2D(length,cols=self.num_sensors_enabled,dtype=float)
+        self.Event_muon_FitPara_s = RingBuffer2D(length,cols=1,dtype=object)
+        self.All_Events_muon_FitPara_s = RingBuffer2D(length,cols=1,dtype=object)
+        self.Event_HighE_Electron_s = RingBuffer2D(length,cols=self.num_sensors_enabled,dtype=float)                                             
+        self.Event_Electron_s = RingBuffer2D(length,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.Event_HighE_Electron_s = RingBuffer2D(self.buffer_size,cols=self.num_sensors_enabled,dtype=float)                                                
-        self.Event_Electron_s= RingBuffer2D(lenght,
+        self.Event_Muon_decay_s = RingBuffer2D(length,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.Event_Muon_decay_s=RingBuffer2D(lenght,
+        self.All_Events_s = RingBuffer2D(length,
                                     cols=self.num_sensors_enabled,dtype=float)
-        self.All_Events_s=RingBuffer2D(lenght,
-                                    cols=self.num_sensors_enabled,dtype=float)
-        self.data_load=RingBuffer2D(lenght,                         # datafile loaded in 
-                                    cols=self.num_sensors_enabled+2,dtype=float)   # le + 2 est pour le numero event et le time
-        self.Class_EventSaved={'Muon':(self.Event_Muon_s),'Electron':(self.Event_Electron_s),'Disintegration':(self.Event_Muon_decay_s),'AllEvents':(self.All_Events_s),'HighEnergyElectron':(self.Event_HighE_Electron_s)}           
-        log.info("Buffers saved cleared size {}".format(lenght)) 
-        self.Event_id_Saved=RingBuffer2D(lenght,
+        self.All_Events_type_s = RingBuffer2D(length,
+                                    cols=1,dtype=object)
+        self.Class_EventSaved = {'Muon':(self.Event_Muon_s),'MuonFitPara':self.Event_muon_FitPara_s,'Electron':(self.Event_Electron_s),
+                                    'Disintegration':(self.Event_Muon_decay_s),'AllEvents':(self.All_Events_s),
+                                    'HighEnergyElectron':(self.Event_HighE_Electron_s),'AllEventsType':(self.All_Events_type_s),
+                                    'AllEventsMuonFitPara':(self.All_Events_muon_FitPara_s)}
+        log.info("Buffers saved cleared size {}".format(length)) 
+        self.Event_id_Saved=RingBuffer2D(length,
                                     cols=1,dtype=int)
 ################################
 

@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Control Window</string>
   </property>
   <property name="styleSheet">
    <string notr="true">
@@ -1261,7 +1261,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
               </palette>
              </property>
              <property name="text">
-              <string>/home/lphe/scifi-data/vata64-data/Pebs_cp-from-tell22/signal_shortfile.csv</string>
+              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/data_example.csv</string>
              </property>
             </widget>
            </item>
@@ -2228,7 +2228,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
 </string>
                </property>
                <property name="text">
-                <string>Event id :</string>
+                <string>Event ID :</string>
                </property>
               </widget>
              </item>
@@ -2297,7 +2297,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
 </string>
              </property>
              <property name="text">
-              <string>Go Event num</string>
+              <string>Go to event:</string>
              </property>
             </widget>
            </item>
@@ -2330,7 +2330,7 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
 </string>
                </property>
                <property name="text">
-                <string>  Event Id :</string>
+                <string>  Event ID :</string>
                </property>
               </widget>
              </item>
@@ -2549,26 +2549,6 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
              </property>
              <property name="maximum">
               <number>10000000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="3">
-            <widget class="QPushButton" name="rotation_saved">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-             </property>
-             <property name="text">
-              <string>3D view Rotation</string>
              </property>
             </widget>
            </item>
