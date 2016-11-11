@@ -2,6 +2,9 @@
 # uplinks enabled (1=enabled, 0=disabled)
 FrontEndBoardConfig: [1, 1, 0, 0, 1, 1, 1, 0]
 
+# Bias configuration
+BiasX: 71.5
+
 # set all pedestal values (if Yes set to the value, if No, takes from pedestal csv file)
 Pedestals:
     AllPed: No

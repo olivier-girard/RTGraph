@@ -26,6 +26,7 @@ from AutoWindow import *
 
 from acqprocessing import AcqProcessing
 from Classify import Classify
+from BiasProcess import BiasProcess
 
 from triggers import triggers
 from configurePlots import pt_size, pt_colour
@@ -550,6 +551,7 @@ class CommandWindow(QtGui.QMainWindow):
         self.saved_window.setRange2Dplot()
         
         self.Auto = None
+        self.bias_proc = None
         
     def configure_timer(self):
         self.timer=QtCore.QTimer(self)
@@ -594,6 +596,9 @@ class CommandWindow(QtGui.QMainWindow):
         self.ui.load_save_classify_data.clicked.connect(self.configure_classify_csv)
         self.ui.load_USB_board_file.clicked.connect(self.get_file_USB_board)
         self.ui.spinBox_USB_board.valueChanged.connect(self.get_value_USB_board)
+        # bias voltage
+        self.ui.biasON.clicked.connect(self.setBiasON)
+        self.ui.biasOFF.clicked.connect(self.setBiasOFF)
     
     #def switch_integration(self) :
     #    self.live_window.integrate_on = not self.live_window.integrate_on
@@ -605,8 +610,29 @@ class CommandWindow(QtGui.QMainWindow):
         self.live_window.Auto = self.Auto
         self.live_window.Auto.set_modules(self.modules+self.plates)
         self.live_window.Auto.window_closed = False
-        self.Auto.show()
-
+        self.Auto.show()            
+    
+    def setBiasON(self):
+        # looks for the bias voltage inside the config file and sets it
+        file_path = self.ui.lineEdit_SetupFile.text()
+        bias = self.acq_proc.load_bias_voltage(file_path)
+        cmd = "/home/lphe/usbBoard/Builds/tracker_demo_bias_controller.sh"
+        option = [str(bias)]
+        if not self.bias_proc:
+            self.bias_proc = BiasProcess(cmd=cmd, args=option)
+        else:
+            self.bias_proc.args = option
+        self.bias_proc.run() 
+    
+    def setBiasOFF(self):
+        cmd = "/home/lphe/usbBoard/Builds/tracker_demo_bias_controller.sh"
+        option = [str(0)]
+        if not self.bias_proc:
+            self.bias_proc = BiasProcess(cmd=cmd, args=option)
+        else:
+            self.bias_proc.args = option
+        self.bias_proc.run() 
+    
     def checkAutoWindow(self):
         # checks if Auto window is closed:
         if self.Auto:

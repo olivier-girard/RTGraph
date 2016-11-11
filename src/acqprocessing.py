@@ -415,4 +415,13 @@ class AcqProcessing:
         
         self.calibration_all_channels['normalization'] = norm_calib
         log.info("Normalization factors defined for each channels enabled")
-        
+    
+    #LOAD SETUP FILE
+    def load_bias_voltage(self, file_path):
+        # load bias voltage from general setup file (txt)
+        log.info("Loading bias voltage from setup file {}".format(file_path))
+         
+        #lecture du fichier yalm
+        with open(file_path, 'r') as f:
+            cfg = yaml.load(f)
+        return cfg['BiasX']
