@@ -15,6 +15,12 @@ from decimal import Decimal
 import time, sys
 from triggers import triggers
 
+# AcqProcessing recuperates the data from the acquisition program (here the usbboard software)
+# and processes it (= pedestal subtraction, gain per channel etc.) 
+# It has therefore loaded all these calibration parameters.
+# Due to programmation errors, this class also includes the buffers for the saved events
+# which make the program not so clear. But to cut it short, this class hosts all the processed
+# data, Live or Saved.
 class AcqProcessing:
     def __init__(self):
         # USBBoard data format:

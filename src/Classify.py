@@ -24,7 +24,9 @@ from ringbuffer2d import RingBuffer2D
 
 from fit_track import *
 
-
+# This class simply categorizes the events into the types 1) muon, 2) electrons, 3) disintegration (does not work super)
+# 4) High energy deposit and 5) All events
+# It needs the fit_track module in order to estimate if a track is sufficiently straight to be a muon
 class Classify(object):   
 # object qui renvoie un dictionnaire trié
 # Il possede une fonction de trie 

@@ -2,10 +2,12 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 
-## Lest_squares is the one that works.
-## Iterative least_squares repeates the least_squares weighting the points by the inverse of the residual
-## meaning that points far away become less and less important. Fit stops when the parameters
-## changes less than 0.1% from the previous iteration. (Works great!)
+# In this file, many simple fitting procedures were tried in order to fit the muon track. The biggest
+# issue is the hits which don't belong to the track and are messing up the fit. We tried an iterative
+# fit where the weight for each point is adapted but it didn't work so greatly. We tried hit rejection
+# based on the correlation between points but also not super effeicient. In the end, we implemented 
+# a small pattern recognition which looks at the slope and offset of all combination of pairs of 
+# points and this is working nicely: reject_hits_pattern_recognition2 + least_squares
 
 # reject hits based on a simple pattern recognition proposed by Fred (top layer and calculation of angle for each hit)
 def reject_hits_pattern_recognition(x_array,y_array, x_para,y_para,dist_thrs):
@@ -203,6 +205,9 @@ def get_weights(m,y0,xv,yv,wv=None) :
 
     return nws
 
+## Iterative least_squares repeates the least_squares weighting the points by the inverse of the residual
+## meaning that points far away become less and less important. Fit stops when the parameters
+## changes less than 0.1% from the previous iteration. (Works great!)
 def iterative_least_squares(x,y,precision=0.01) :
     
     #x,y = reject_hits(xini,yini)

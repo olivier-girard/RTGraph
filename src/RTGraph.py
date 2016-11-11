@@ -106,7 +106,9 @@ class AutoWindow(QtGui.QMainWindow):
         event.accept()
         self.window_closed = True
     
-# class to handle the graphs that will be displayed
+# The GraphWindow class to handle the graphs that will be displayed.
+# It is the parent class of Live- and Saved- Window which share the types of graphs,
+# the timers and so on.
 class GraphWindow(QtGui.QMainWindow):
     
     def __init__(self, acq_proc):
@@ -266,7 +268,8 @@ class GraphWindow(QtGui.QMainWindow):
             plate_list[i].setBrush(pg.mkBrush('c'))
         return plate_list
         
-
+# LiveWindow is the purely live monitoring of the events. It redefines some methods of GraphWindow
+# to adapt how the plot are updated and how the event acquisition is performed.
 class LiveWindow(GraphWindow):
     
     def __init__(self, acq_proc):
@@ -499,7 +502,9 @@ class LiveWindow(GraphWindow):
         if(self.acq_proc.Class_EventLive['HighEnergyElectron'].len()!=0):
             self.timer_plot_update.singleShot(2,self.update_plot)
             
-            
+# CommandWindow contains all the buttons needed to control: which window we want to display,
+# what configuration files / saving files / save files we want to load/fill,
+# which type of events we select, the bias voltage control.
 class CommandWindow(QtGui.QMainWindow):
     def __init__(self,acq):
         QtGui.QMainWindow.__init__(self)
@@ -609,6 +614,7 @@ class CommandWindow(QtGui.QMainWindow):
         self.live_window.Auto.window_closed = False
         self.Auto.show()            
     
+    # Bias voltage control
     def setBiasON(self):
         # looks for the bias voltage inside the config file and sets it
         file_path = self.ui.lineEdit_SetupFile.text()
@@ -920,7 +926,10 @@ class CommandWindow(QtGui.QMainWindow):
         # et ici tout ce qu'il faut potentiellement faire pour quitter comme il faut.
         event.accept()
         
-        
+# SavedWindow can load a file which is in the format of a csv file containing the data
+# of all channels. It will load the file and trigger + classify the events line by line (this
+# is not so effecient so for large files, it might take some time) It will only take 
+# the first 25k events of the file.
 class SavedWindow(GraphWindow):
     def __init__(self,acq_proc):
         

@@ -7,6 +7,7 @@ import signal
 
 from multiprocessing import Value
 
+# Simple class to launch the usbboard bias controller as a subprocess
 class BiasProcess(object):
     def __init__(self, 
                  cmd="", args=[]):

@@ -7,6 +7,8 @@ import signal
 
 from multiprocessing import Value
 
+# This class launches the usbboard data acquisition as a python subprocess.
+# The data is sent through the std::cout of the usbboard software which pipes it to python.
 class PipeProcess(object):
     def __init__(self, result_queue,
                  cmd="./fake_track_pebs.py", args=[]):
