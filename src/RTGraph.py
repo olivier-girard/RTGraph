@@ -31,14 +31,11 @@ from BiasProcess import BiasProcess
 from triggers import triggers
 from configurePlots import pt_size, pt_colour
 
-# architecture: le programme est divisé en trois parties, une pour chaque pannel:live, command et saved
-# les configurations des trois fenètres s'effectue grâce a deux fichiers, le SetupFile qui contient 
-# les gains, les entrées et les paramètrees trie et le GEOnmetrieFile qui dimentionne le detecteur 
-# Live a besoin de la bibliotheque d'acquisition acqprocessing pour prendre les donnees les traiter et les ploter
-# Saved traite les donnees et les traces directements
-# les donnees arrivent dans le programme, sont traitees (retrait du bruit et conversion en p.e ou MIP)
-# Elles sont ensuite classée avec l'object Classify qui renvoie un dictionnaire 
-# le dictionnaire live s'enregistre dans un fichier tout les ... voir taille du buffer self.acq_proc.buffer_size
+# This file contains the main and one class for each different type of window.
+
+# The AutoWindow is used in live mode to display the different graphs one after the other
+# Once it is launched, the program is slower so for a purely live display, it is preferable
+# not to launch this window.
 
 class AutoWindow(QtGui.QMainWindow):
     
