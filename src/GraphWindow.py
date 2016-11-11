@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'SavedWindow.ui'
+# Form implementation generated from reading ui file 'GraphWindow.ui'
 #
 # Created by: PyQt4 UI code generator 4.11.4
 #
@@ -495,7 +495,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "Saved Window", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Graph Window", None))
         self.EnergieDep.setText(_translate("MainWindow", "  0", None))
         self.label.setText(_translate("MainWindow", "Energy deposit:  ", None))
         self.label_2.setText(_translate("MainWindow", "Event type:  ", None))

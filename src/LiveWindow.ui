@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1348</width>
-    <height>920</height>
+    <height>946</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -303,12 +303,28 @@ QStatusBar {
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="2">
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QLabel" name="EnergieDep">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>  0</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
           <italic>true</italic>
           <bold>true</bold>
@@ -319,22 +335,55 @@ QStatusBar {
 </string>
         </property>
         <property name="text">
-         <string>                                                                                   Energie deposite:</string>
+         <string>Energy deposit:  </string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="EnergieDep">
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_2">
         <property name="font">
          <font>
           <family>URW Bookman L</family>
-          <pointsize>12</pointsize>
+          <pointsize>20</pointsize>
           <weight>75</weight>
+          <italic>true</italic>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::LeftToRight</enum>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+        </property>
+        <property name="text">
+         <string>Event type:  </string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::AutoText</enum>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="EventType">
+        <property name="font">
+         <font>
+          <family>URW Bookman L</family>
+          <pointsize>20</pointsize>
+          <weight>75</weight>
+          <italic>false</italic>
           <bold>true</bold>
          </font>
         </property>
         <property name="text">
-         <string>0</string>
+         <string>  NotClassified</string>
         </property>
        </widget>
       </item>
@@ -342,16 +391,28 @@ QStatusBar {
     </item>
     <item row="1" column="2">
      <widget class="QTabWidget" name="display">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>1330</width>
         <height>0</height>
        </size>
       </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
       <property name="font">
        <font>
         <family>URW Bookman L</family>
-        <pointsize>14</pointsize>
+        <pointsize>20</pointsize>
         <weight>75</weight>
         <italic>true</italic>
         <bold>true</bold>
@@ -386,11 +447,41 @@ color:rgb(0, 0, 0);
 }</string>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="usesScrollButtons">
+       <bool>true</bool>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
       </property>
       <widget class="QWidget" name="tracker">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>1318</width>
+         <height>0</height>
+        </size>
+       </property>
        <attribute name="title">
-        <string>2D trace</string>
+        <string>Event display</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
@@ -409,19 +500,15 @@ color:rgb(0, 0, 0);
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="threed">
-       <attribute name="title">
-        <string>3D trace</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="GLViewWidget" name="plt3d"/>
-        </item>
-       </layout>
-      </widget>
       <widget class="QWidget" name="histogram">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
-        <string>Histogram</string>
+        <string>Angle</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_8">
         <item row="0" column="0">
@@ -434,6 +521,12 @@ color:rgb(0, 0, 0);
        </layout>
       </widget>
       <widget class="QWidget" name="frequency">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
         <string>Frequency</string>
        </attribute>
@@ -447,15 +540,21 @@ color:rgb(0, 0, 0);
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="channel">
+      <widget class="QWidget" name="Integration_tab">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <attribute name="title">
-        <string>Channel</string>
+        <string>Integration</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_12">
+       <layout class="QGridLayout" name="gridLayout_13">
         <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout_11">
+         <layout class="QGridLayout" name="gridLayout_3">
           <item row="0" column="0">
-           <widget class="GraphicsLayoutWidget" name="pltchannel"/>
+           <widget class="GraphicsLayoutWidget" name="integview"/>
           </item>
          </layout>
         </item>
@@ -510,11 +609,6 @@ color:rgb(0, 0, 0);
    <class>GraphicsLayoutWidget</class>
    <extends>QGraphicsView</extends>
    <header location="global">pyqtgraph</header>
-  </customwidget>
-  <customwidget>
-   <class>GLViewWidget</class>
-   <extends>QGraphicsView</extends>
-   <header location="global">pyqtgraph.opengl</header>
   </customwidget>
  </customwidgets>
  <resources/>

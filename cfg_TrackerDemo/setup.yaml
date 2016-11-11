@@ -2,6 +2,9 @@
 # uplinks enabled (1=enabled, 0=disabled)
 FrontEndBoardConfig: [1, 1, 0, 0, 1, 1, 1, 0]
 
+# Bias configuration
+BiasX: 71.5
+
 # set all pedestal values (if Yes set to the value, if No, takes from pedestal csv file)
 Pedestals:
     AllPed: No
@@ -9,36 +12,52 @@ Pedestals:
 #    PedFilePath: setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/cosmic_analysis/python-scripts/RTGraph/src/setup_examples/pedestals_pebs.csv
 #    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/OneFloor_module/pedestal2.csv
-    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal3.csv
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_first_try/pedestal3.csv
+    # trigger on board 80 = layer A+B
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger80/pedestal1_csv.csv
+    # trigger on board 84 = layer E+F
+#    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/full_tracker_CIJrepainted_trigger84/pedestal1_csv.csv
+    # Ready for open day
+    PedFilePath: /home/lphe/scifi-data/vata64-data/TrackerDemo/ReadyForOpenDay/pedestal_csv1.csv
 
 # set all gain values in ADC/PE (if Yes set to the value, if No, takes from gain csv file)
 Gains:
-    AllGain: Yes
+    AllGain: No
     AllGainVal: 10.5
-    GainFilePath: setup_examples/gain_csv.csv
+    GainFilePath: /home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/gain_correction1.csv # this file sets the gain around 1. The conversion from ADC to MIP is done through PetoMip
 
-# set a Threshold values (in MIP (?))
-Threshold: 0.6
+# set a Threshold values (in MIP)
+Threshold: 0.3
 
 # PE to MIP (convertion factor from photoelectron to MIP)
-PetoMip: 7
+PetoMip: 186 # ADC to MIP
 
 
 #Sort out Parameters 
 
-Muon:
-    EnergieDeposite:
-    DetectionPointNumber:
-    PointPerPlane:
-   
-
-Electron:
-    EnergieLimitePerPlane:
-    PlaneNumber:
-
-MuonDecay:
-
-ElectronE>>:
+# Energy deposit in MIP
+ClassificationParameters:
+    Muon:
+        TotalEnergyDepositMax: 30
+        EnergyDepositPerPlane: 5
+        NumberOfDetectionPoints: 7
+        MaximumNumberOfHitsPerPlane: 2
+        MaxChi2: 10
+    Electron:
+        TotalEnergyDepositMin: 30
+        NumberOfHitsPerPlaneMax: 10
+    Disintegration:
+        Before: # for the layers before the disintegration
+            NumberOfLayersMin: 3
+            NumberOfHitsPerPlaneMax: 2
+            EnergyDepositPerPlaneMax: 10
+        After:
+            NumberOfLayersMin: 3
+            NumberOfHitsPerPlaneMin: 2
+            EnergyDepositPerPlaneMin: 10
+    HighEnergyElectron:
+        TotalEnergyDepositMin: 150
+        TotalNumberOfHits: 50
 
 
 

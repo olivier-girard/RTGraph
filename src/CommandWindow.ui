@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1333</width>
-    <height>915</height>
+    <height>760</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Control Window</string>
   </property>
   <property name="styleSheet">
    <string notr="true">
@@ -349,30 +349,10 @@ QPushButton:pressed {
         <layout class="QGridLayout" name="gridLayout_24">
          <item row="0" column="0">
           <layout class="QGridLayout" name="gridLayout">
-           <item row="11" column="1" colspan="6">
+           <item row="10" column="1" colspan="6">
             <widget class="QLineEdit" name="lineEdit_SensorPos">
              <property name="text">
               <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/geometry_full_tracker_approx.csv</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QPushButton" name="rotation">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-             </property>
-             <property name="text">
-              <string>3D view Rotation</string>
              </property>
             </widget>
            </item>
@@ -392,42 +372,31 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <layout class="QGridLayout" name="gridLayout_5">
-             <item row="1" column="2">
-              <widget class="QLCDNumber" name="CurrentEven">
-               <property name="minimumSize">
-                <size>
-                 <width>181</width>
-                 <height>30</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLabel" name="label_13">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-
-</string>
-               </property>
-               <property name="text">
-                <string>  Event Id :</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
+           <item row="9" column="1" colspan="6">
+            <widget class="QLineEdit" name="lineEdit_SetupFile">
+             <property name="text">
+              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/setup.yaml</string>
+             </property>
+            </widget>
            </item>
-           <item row="2" column="6">
+           <item row="0" column="2" rowspan="8">
+            <widget class="Line" name="line">
+             <property name="minimumSize">
+              <size>
+               <width>10</width>
+               <height>313</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">color:rgb(20, 153, 255);
+background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.0948276 rgba(136, 106, 22, 255), stop:0.185345 rgba(40, 5, 5, 255), stop:0.376179 rgba(223, 215, 102, 255), stop:0.399142 rgba(137, 108, 26, 255), stop:0.407725 rgba(204, 181, 74, 255), stop:0.420601 rgba(202, 174, 68, 255), stop:0.424893 rgba(166, 140, 41, 255), stop:0.429185 rgba(14, 14, 11, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.625 rgba(187, 156, 51, 255), stop:0.698276 rgba(168, 142, 42, 255), stop:0.814655 rgba(218, 202, 86, 255), stop:0.853448 rgba(208, 187, 73, 255), stop:0.931034 rgba(22, 26, 1, 255), stop:0.987069 rgba(187, 156, 51, 255));</string>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="6">
             <widget class="QPushButton" name="btnSavedPause">
              <property name="minimumSize">
               <size>
@@ -458,38 +427,142 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="2" column="7">
-            <widget class="QPushButton" name="btnSavedLeft">
-             <property name="minimumSize">
-              <size>
-               <width>70</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>70</width>
-               <height>60</height>
-              </size>
-             </property>
+           <item row="6" column="1">
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="3" column="0">
+              <widget class="QRadioButton" name="radioButton_highelectron">
+               <property name="inputMethodHints">
+                <set>Qt::ImhNone</set>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QRadioButton" name="radioButton_muon">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QRadioButton" name="radioButton_All">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLCDNumber" name="ALL_Ind"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QRadioButton" name="radioButton_disintegration">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLCDNumber" name="disintegration_Ind"/>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLCDNumber" name="electron_Ind">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLCDNumber" name="muon_Ind">
+               <property name="font">
+                <font>
+                 <weight>50</weight>
+                 <italic>false</italic>
+                 <bold>false</bold>
+                </font>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLCDNumber" name="highelectron_Ind"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioButton_electron">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="9" column="7" colspan="2">
+            <widget class="QPushButton" name="setupLoadbtn">
              <property name="font">
               <font>
                <family>URW Bookman L</family>
-               <pointsize>16</pointsize>
+               <pointsize>12</pointsize>
                <weight>75</weight>
                <italic>true</italic>
                <bold>true</bold>
               </font>
              </property>
              <property name="styleSheet">
-              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/left.png);</string>
+              <string notr="true">background:qconicalgradient(cx:0, cy:0, angle:135, stop:0 rgba(0, 148, 114, 69), stop:0.375 rgba(0, 0, 0, 255), stop:0.452889 rgba(71, 72, 0, 145), stop:0.466983 rgba(1, 128, 99, 228), stop:0.503158 rgba(72, 69, 20, 130), stop:0.505423 rgba(72, 61, 20, 130), stop:0.55 rgba(72, 72, 0, 255), stop:0.668103 rgba(0, 0, 0, 255), stop:0.685345 rgba(72, 72, 0, 69), stop:0.905172 rgba(72, 57, 0, 130));
+</string>
              </property>
              <property name="text">
-              <string/>
+              <string>Load</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="0">
+           <item row="6" column="0">
             <layout class="QGridLayout" name="gridLayout_8">
              <item row="0" column="0">
               <widget class="QLabel" name="label_7">
@@ -548,7 +621,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Muon Decay</string>
+                <string>Disintegration</string>
                </property>
               </widget>
              </item>
@@ -570,7 +643,7 @@ QPushButton:pressed {
 </string>
                </property>
                <property name="text">
-                <string>Electron E&gt;&gt;</string>
+                <string>Large energy deposit</string>
                </property>
               </widget>
              </item>
@@ -595,68 +668,6 @@ QPushButton:pressed {
               </widget>
              </item>
             </layout>
-           </item>
-           <item row="2" column="8">
-            <widget class="QPushButton" name="btnSavedRight">
-             <property name="minimumSize">
-              <size>
-               <width>68</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>68</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>16</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/right.png);</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="5">
-            <widget class="QPushButton" name="btnSavedStart">
-             <property name="minimumSize">
-              <size>
-               <width>70</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>70</width>
-               <height>60</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>16</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/played.png);</string>
-             </property>
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
            </item>
            <item row="0" column="1" rowspan="2">
             <widget class="QPushButton" name="pushButton_LIVE">
@@ -1458,67 +1469,6 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="2" column="3">
-            <widget class="QLabel" name="label_2">
-             <property name="minimumSize">
-              <size>
-               <width>150</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>80</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>15</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-
-</string>
-             </property>
-             <property name="text">
-              <string>Go Event num</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="4" colspan="5">
-            <layout class="QGridLayout" name="gridLayout_6">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_19">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-
-</string>
-               </property>
-               <property name="text">
-                <string>Event id :</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLCDNumber" name="current_event"/>
-             </item>
-            </layout>
-           </item>
            <item row="8" column="0" colspan="9">
             <widget class="Line" name="line_2">
              <property name="minimumSize">
@@ -1535,7 +1485,45 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="11" column="7" colspan="2">
+           <item row="7" column="3">
+            <widget class="QLabel" name="label_3">
+             <property name="maximumSize">
+              <size>
+               <width>192</width>
+               <height>26</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>12</pointsize>
+               <weight>75</weight>
+               <italic>false</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Saved data :</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0" rowspan="5">
+            <widget class="QLabel" name="label_logo">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>120000</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="10" column="7" colspan="2">
             <widget class="QPushButton" name="sensorLoadbtn">
              <property name="font">
               <font>
@@ -1555,7 +1543,7 @@ QPushButton:pressed {
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
+           <item row="4" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
               <widget class="QLabel" name="label_14">
@@ -1606,586 +1594,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="0" column="0" rowspan="4">
-            <widget class="QLabel" name="label_logo">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="7" colspan="2">
-            <widget class="QPushButton" name="setupLoadbtn">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qconicalgradient(cx:0, cy:0, angle:135, stop:0 rgba(0, 148, 114, 69), stop:0.375 rgba(0, 0, 0, 255), stop:0.452889 rgba(71, 72, 0, 145), stop:0.466983 rgba(1, 128, 99, 228), stop:0.503158 rgba(72, 69, 20, 130), stop:0.505423 rgba(72, 61, 20, 130), stop:0.55 rgba(72, 72, 0, 255), stop:0.668103 rgba(0, 0, 0, 255), stop:0.685345 rgba(72, 72, 0, 69), stop:0.905172 rgba(72, 57, 0, 130));
-</string>
-             </property>
-             <property name="text">
-              <string>Load</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="4" colspan="5">
-            <layout class="QGridLayout" name="gridLayout_4">
-             <item row="0" column="1">
-              <widget class="QRadioButton" name="radioButton_electron_sd">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup_2</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QRadioButton" name="radioButton_highelectron_sd">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup_2</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLCDNumber" name="electron_Ind_sd">
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1">
-              <widget class="QRadioButton" name="radioButton_All_sd">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup_2</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QRadioButton" name="radioButton_muon_sd">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup_2</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QRadioButton" name="radioButton_muondecay_sd">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup_2</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="2" column="2">
-              <widget class="QLCDNumber" name="muondecay_Ind_sd"/>
-             </item>
-             <item row="1" column="2">
-              <widget class="QLCDNumber" name="muon_Ind_sd"/>
-             </item>
-             <item row="3" column="2">
-              <widget class="QLCDNumber" name="highelectron_Ind_sd"/>
-             </item>
-             <item row="4" column="2">
-              <widget class="QLCDNumber" name="ALL_Ind_sd"/>
-             </item>
-             <item row="1" column="3">
-              <spacer name="horizontalSpacer_2">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="2" column="4">
-            <widget class="QSpinBox" name="spinBox_Event">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>11</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>10000000</number>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1" colspan="6">
-            <widget class="QLineEdit" name="lineEdit_SetupFile">
-             <property name="text">
-              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/cfg_TrackerDemo/setup.yaml</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <layout class="QGridLayout" name="gridLayout_7">
-             <item row="0" column="1">
-              <widget class="QPushButton" name="btnLivePause">
-               <property name="minimumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background-image:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img//pause.png);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QPushButton" name="btnLiveStart">
-               <property name="minimumSize">
-                <size>
-                 <width>70</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>70</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/played.png);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QPushButton" name="btnLiveLeft">
-               <property name="minimumSize">
-                <size>
-                 <width>70</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>70</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/left.png);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="3">
-              <widget class="QPushButton" name="btnLiveRight">
-               <property name="minimumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/right.png);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="4">
-              <widget class="QPushButton" name="btnLiveStopacq">
-               <property name="minimumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>68</width>
-                 <height>60</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/stop.png);</string>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="0" column="3" rowspan="2" colspan="7">
-            <widget class="QPushButton" name="pushButton_SavedData">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>100</height>
-              </size>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>22</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-             </property>
-             <property name="text">
-              <string>Saved data</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <layout class="QGridLayout" name="gridLayout_3">
-             <item row="3" column="0">
-              <widget class="QRadioButton" name="radioButton_highelectron">
-               <property name="inputMethodHints">
-                <set>Qt::ImhNone</set>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QRadioButton" name="radioButton_muon">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QRadioButton" name="radioButton_All">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="4" column="2">
-              <widget class="QLCDNumber" name="ALL_Ind"/>
-             </item>
-             <item row="2" column="0">
-              <widget class="QRadioButton" name="radioButton_muondecay">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="2" column="2">
-              <widget class="QLCDNumber" name="muondecay_Ind"/>
-             </item>
-             <item row="0" column="2">
-              <widget class="QLCDNumber" name="electron_Ind">
-               <property name="enabled">
-                <bool>true</bool>
-               </property>
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QLCDNumber" name="muon_Ind">
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <italic>false</italic>
-                 <bold>false</bold>
-                </font>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="2">
-              <widget class="QLCDNumber" name="highelectron_Ind"/>
-             </item>
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="radioButton_electron">
-               <property name="text">
-                <string/>
-               </property>
-               <property name="autoExclusive">
-                <bool>true</bool>
-               </property>
-               <attribute name="buttonGroup">
-                <string notr="true">buttonGroup</string>
-               </attribute>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item row="11" column="0">
-            <widget class="QLabel" name="label_4">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Sensor position file:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="3">
-            <layout class="QGridLayout" name="gridLayout_9">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_15">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-               </property>
-               <property name="text">
-                <string>Muon</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QLabel" name="label_17">
-               <property name="minimumSize">
-                <size>
-                 <width>160</width>
-                 <height>0</height>
-                </size>
-               </property>
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-               </property>
-               <property name="text">
-                <string>Electron E&gt;&gt;</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_6">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-               </property>
-               <property name="text">
-                <string>Electron</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="0">
-              <widget class="QLabel" name="label_16">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-</string>
-               </property>
-               <property name="text">
-                <string>Muon Decay</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
-              <widget class="QLabel" name="label_18">
-               <property name="font">
-                <font>
-                 <family>URW Bookman L</family>
-                 <pointsize>16</pointsize>
-                 <weight>75</weight>
-                 <italic>true</italic>
-                 <bold>true</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
-
-</string>
-               </property>
-               <property name="text">
-                <string>ALL</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="6" column="4" colspan="4">
+           <item row="7" column="4" colspan="4">
             <widget class="QLineEdit" name="lineEdit_DataPath">
              <property name="palette">
               <palette>
@@ -2522,31 +1931,11 @@ QPushButton:pressed {
               </palette>
              </property>
              <property name="text">
-              <string>/home/lphe/scifi-data/vata64-data/Pebs_cp-from-tell22/signal_shortfile.csv</string>
+              <string>/home/lphe/cosmic_analysis/python-scripts/RTGraph/data_example.csv</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="8">
-            <widget class="QPushButton" name="DataLoadbtn">
-             <property name="font">
-              <font>
-               <family>URW Bookman L</family>
-               <pointsize>12</pointsize>
-               <weight>75</weight>
-               <italic>true</italic>
-               <bold>true</bold>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">background:qconicalgradient(cx:0, cy:0, angle:135, stop:0 rgba(0, 148, 114, 69), stop:0.375 rgba(0, 0, 0, 255), stop:0.452889 rgba(71, 72, 0, 145), stop:0.466983 rgba(1, 128, 99, 228), stop:0.503158 rgba(72, 69, 20, 130), stop:0.505423 rgba(72, 61, 20, 130), stop:0.55 rgba(72, 72, 0, 255), stop:0.668103 rgba(0, 0, 0, 255), stop:0.685345 rgba(72, 72, 0, 69), stop:0.905172 rgba(72, 57, 0, 130));
-</string>
-             </property>
-             <property name="text">
-              <string>Load</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
+           <item row="7" column="1">
             <layout class="QGridLayout" name="gridLayout_11">
              <item row="0" column="0">
               <widget class="QLineEdit" name="lineEdit_SaveAs">
@@ -2644,45 +2033,181 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="6" column="3">
-            <widget class="QLabel" name="label_3">
-             <property name="maximumSize">
-              <size>
-               <width>192</width>
-               <height>26</height>
-              </size>
-             </property>
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_4">
              <property name="font">
               <font>
                <family>URW Bookman L</family>
                <pointsize>12</pointsize>
                <weight>75</weight>
-               <italic>false</italic>
                <bold>true</bold>
               </font>
              </property>
              <property name="text">
-              <string>Saved data :</string>
+              <string>Sensor position file:</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <layout class="QGridLayout" name="gridLayout_10">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_12">
+           <item row="3" column="7">
+            <widget class="QPushButton" name="btnSavedLeft">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>16</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/left.png);</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="4" colspan="5">
+            <layout class="QGridLayout" name="gridLayout_6">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_19">
                <property name="font">
                 <font>
                  <family>URW Bookman L</family>
-                 <pointsize>12</pointsize>
+                 <pointsize>16</pointsize>
                  <weight>75</weight>
+                 <italic>true</italic>
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+
+</string>
+               </property>
                <property name="text">
-                <string>Save selected data path:</string>
+                <string>Event ID :</string>
                </property>
               </widget>
              </item>
+             <item row="0" column="1">
+              <widget class="QLCDNumber" name="current_event"/>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="8">
+            <widget class="QPushButton" name="btnSavedRight">
+             <property name="minimumSize">
+              <size>
+               <width>68</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>68</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>16</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/right.png);</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="3">
+            <widget class="QLabel" name="label_2">
+             <property name="minimumSize">
+              <size>
+               <width>150</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>15</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+
+</string>
+             </property>
+             <property name="text">
+              <string>Go to event:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <layout class="QGridLayout" name="gridLayout_5">
+             <item row="1" column="2">
+              <widget class="QLCDNumber" name="CurrentEven">
+               <property name="minimumSize">
+                <size>
+                 <width>181</width>
+                 <height>30</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="label_13">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+
+</string>
+               </property>
+               <property name="text">
+                <string>  Event ID :</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="7" column="0">
+            <layout class="QGridLayout" name="gridLayout_10">
              <item row="2" column="0">
               <widget class="QLabel" name="label_22">
                <property name="font">
@@ -2696,6 +2221,21 @@ QPushButton:pressed {
                </property>
                <property name="text">
                 <string>USB Board root file</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_12">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>12</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="text">
+                <string>Save selected data path:</string>
                </property>
               </widget>
              </item>
@@ -2732,25 +2272,8 @@ QPushButton:pressed {
              </item>
             </layout>
            </item>
-           <item row="0" column="2" rowspan="7">
-            <widget class="Line" name="line">
-             <property name="minimumSize">
-              <size>
-               <width>10</width>
-               <height>313</height>
-              </size>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">color:rgb(20, 153, 255);
-background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.0948276 rgba(136, 106, 22, 255), stop:0.185345 rgba(40, 5, 5, 255), stop:0.376179 rgba(223, 215, 102, 255), stop:0.399142 rgba(137, 108, 26, 255), stop:0.407725 rgba(204, 181, 74, 255), stop:0.420601 rgba(202, 174, 68, 255), stop:0.424893 rgba(166, 140, 41, 255), stop:0.429185 rgba(14, 14, 11, 255), stop:0.52 rgba(209, 190, 76, 255), stop:0.625 rgba(187, 156, 51, 255), stop:0.698276 rgba(168, 142, 42, 255), stop:0.814655 rgba(218, 202, 86, 255), stop:0.853448 rgba(208, 187, 73, 255), stop:0.931034 rgba(22, 26, 1, 255), stop:0.987069 rgba(187, 156, 51, 255));</string>
-             </property>
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="3">
-            <widget class="QPushButton" name="rotation_saved">
+           <item row="7" column="8">
+            <widget class="QPushButton" name="DataLoadbtn">
              <property name="font">
               <font>
                <family>URW Bookman L</family>
@@ -2761,64 +2284,561 @@ background:qlineargradient(spread:reflect, x1:0, y1:1, x2:1, y2:1, stop:0.094827
               </font>
              </property>
              <property name="styleSheet">
+              <string notr="true">background:qconicalgradient(cx:0, cy:0, angle:135, stop:0 rgba(0, 148, 114, 69), stop:0.375 rgba(0, 0, 0, 255), stop:0.452889 rgba(71, 72, 0, 145), stop:0.466983 rgba(1, 128, 99, 228), stop:0.503158 rgba(72, 69, 20, 130), stop:0.505423 rgba(72, 61, 20, 130), stop:0.55 rgba(72, 72, 0, 255), stop:0.668103 rgba(0, 0, 0, 255), stop:0.685345 rgba(72, 72, 0, 69), stop:0.905172 rgba(72, 57, 0, 130));
+</string>
+             </property>
+             <property name="text">
+              <string>Load</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="4">
+            <widget class="QSpinBox" name="spinBox_Event">
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>11</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10000000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <layout class="QGridLayout" name="gridLayout_7">
+             <item row="0" column="1">
+              <widget class="QPushButton" name="btnLivePause">
+               <property name="minimumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-image:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img//pause.png);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QPushButton" name="btnLiveStart">
+               <property name="minimumSize">
+                <size>
+                 <width>70</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>70</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/played.png);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="btnLiveLeft">
+               <property name="minimumSize">
+                <size>
+                 <width>70</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>70</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/left.png);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QPushButton" name="btnLiveRight">
+               <property name="minimumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/right.png);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="4">
+              <widget class="QPushButton" name="btnLiveStopacq">
+               <property name="minimumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>68</width>
+                 <height>60</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/stop.png);</string>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item row="3" column="5">
+            <widget class="QPushButton" name="btnSavedStart">
+             <property name="minimumSize">
+              <size>
+               <width>70</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>70</width>
+               <height>60</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>16</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">background:url(/home/lphe/cosmic_analysis/python-scripts/RTGraph/src/img/played.png);</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3" rowspan="2" colspan="7">
+            <widget class="QPushButton" name="pushButton_SavedData">
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>100</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>22</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="styleSheet">
               <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
 </string>
              </property>
              <property name="text">
-              <string>3D view Rotation</string>
+              <string>Saved data</string>
              </property>
             </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QPushButton" name="automatic_bt">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>100</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>1280</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="baseSize">
+              <size>
+               <width>300</width>
+               <height>30</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <family>URW Bookman L</family>
+               <pointsize>16</pointsize>
+               <weight>75</weight>
+               <italic>true</italic>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Automatic mode</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="5" colspan="4">
+            <layout class="QGridLayout" name="gridLayout_4">
+             <item row="0" column="1">
+              <widget class="QRadioButton" name="radioButton_electron_sd">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_2</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QRadioButton" name="radioButton_highelectron_sd">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_2</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLCDNumber" name="electron_Ind_sd">
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1">
+              <widget class="QRadioButton" name="radioButton_All_sd">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_2</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QRadioButton" name="radioButton_muon_sd">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_2</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QRadioButton" name="radioButton_disintegration_sd">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="autoExclusive">
+                <bool>true</bool>
+               </property>
+               <attribute name="buttonGroup">
+                <string notr="true">buttonGroup_2</string>
+               </attribute>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLCDNumber" name="disintegration_Ind_sd"/>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLCDNumber" name="muon_Ind_sd"/>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLCDNumber" name="highelectron_Ind_sd"/>
+             </item>
+             <item row="4" column="2">
+              <widget class="QLCDNumber" name="ALL_Ind_sd"/>
+             </item>
+             <item row="1" column="3">
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </item>
+           <item row="6" column="3" colspan="2">
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_15">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+               </property>
+               <property name="text">
+                <string>Muon</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_17">
+               <property name="minimumSize">
+                <size>
+                 <width>160</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+               </property>
+               <property name="text">
+                <string>Large energy deposit</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_6">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+               </property>
+               <property name="text">
+                <string>Electron</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_16">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+</string>
+               </property>
+               <property name="text">
+                <string>Disintegration</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_18">
+               <property name="font">
+                <font>
+                 <family>URW Bookman L</family>
+                 <pointsize>16</pointsize>
+                 <weight>75</weight>
+                 <italic>true</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background:qlineargradient(spread:repeat, x1:1, y1:0, x2:0, y2:1, stop:0.310345 rgba(156, 143, 137, 133), stop:0.378572 rgba(104, 117, 126, 145), stop:0.392241 rgba(135, 143, 88, 130), stop:0.479796 rgba(136, 129, 116, 208), stop:0.537455 rgba(185, 214, 223, 69), stop:0.543862 rgba(51, 38, 12, 69), stop:0.592552 rgba(52, 52, 52, 130), stop:0.597677 rgba(17, 42, 49, 255), stop:0.74569 rgba(48, 48, 48, 69), stop:0.891088 rgba(101, 95, 60, 69));
+
+</string>
+               </property>
+               <property name="text">
+                <string>ALL</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
         </layout>
        </item>
        <item row="1" column="0">
-        <widget class="QPushButton" name="poster">
+        <widget class="QGroupBox" name="groupBox">
          <property name="font">
           <font>
-           <family>URW Bookman L</family>
-           <pointsize>16</pointsize>
-           <weight>75</weight>
-           <italic>true</italic>
-           <bold>true</bold>
+           <pointsize>14</pointsize>
+           <weight>50</weight>
+           <bold>false</bold>
           </font>
          </property>
-         <property name="text">
-          <string>POSTER</string>
+         <property name="title">
+          <string>Bias Voltage</string>
          </property>
+         <layout class="QGridLayout" name="gridLayout_14">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="biasON">
+            <property name="font">
+             <font>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>ON</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="biasOFF">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>14</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>OFF</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_20">
-      <property name="maximumSize">
-       <size>
-        <width>200</width>
-        <height>20</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <family>URW Bookman L</family>
-        <pointsize>14</pointsize>
-        <weight>75</weight>
-        <italic>true</italic>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>ERROR MESSAGE</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="label_21">
-      <property name="text">
-       <string/>
-      </property>
      </widget>
     </item>
    </layout>
